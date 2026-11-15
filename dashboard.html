@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#100d25">
+    <title>Game Hub — Game của tụi mình</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #100d25;
+        color: #f7f4ff;
+        font-synthesis: none;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background:
+          radial-gradient(ellipse at 18% 20%, #13bada18, transparent 35%),
+          radial-gradient(ellipse at 83% 18%, #a541f526, transparent 38%),
+          linear-gradient(145deg, #12102d, #211d48 75%, #161635);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      a:focus-visible,
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid #ffdc61;
+        outline-offset: 3px;
+      }
+
+      .topbar {
+        display: flex;
+        min-height: 72px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px clamp(18px, 5vw, 68px);
+        border-bottom: 1px solid #47d9ff29;
+        background: #100d25e8;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        color: #c1e942;
+        font-size: clamp(1rem, 2.4vw, 1.4rem);
+        font-weight: 900;
+        letter-spacing: 0.035em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark {
+        font-size: 1.6rem;
+        filter: drop-shadow(0 0 12px #ffd65c88);
+      }
+
+      .topbar-label {
+        color: #a7aec6;
+        font-size: 0.78rem;
+      }
+
+      main {
+        width: min(100% - 36px, 1160px);
+        margin: 0 auto;
+        padding: 33px 0 56px;
+      }
+
+      .hero {
+        display: grid;
+        min-height: 122px;
+        place-items: center;
+        margin-bottom: 24px;
+        padding: 22px;
+        border: 1px solid #ba71ff77;
+        border-left: 4px solid #18dcf2;
+        border-right: 4px solid #bb4eff;
+        border-radius: 12px;
+        background: linear-gradient(100deg, #19bde31f, #a23ce529);
+        text-align: center;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(1.25rem, 3vw, 1.8rem);
+        font-style: italic;
+        letter-spacing: -0.025em;
+      }
+
+      .hero p {
+        margin: 9px 0 0;
+        color: #c2c2d7;
+        font-size: 0.85rem;
+      }
+
+      .section-heading {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 0 0 16px;
+      }
+
+      .section-heading h2 {
+        margin: 0;
+        font-size: 1.04rem;
+        letter-spacing: -0.02em;
+      }
+
+      .section-heading p {
+        margin: 5px 0 0;
+        color: #a3a6be;
+        font-size: 0.77rem;
+      }
+
+      .search {
+        width: min(230px, 40vw);
+        min-height: 37px;
+        padding: 0 11px;
+        border: 1px solid #67d8ff3b;
+        border-radius: 8px;
+        background: #151334;
+        color: #f7f4ff;
+        font-size: 0.78rem;
+      }
+
+      .search::placeholder {
+        color: #8e91ab;
+      }
+
+      .game-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .game-card {
+        display: flex;
+        position: relative;
+        min-width: 0;
+        min-height: 300px;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 17px 16px;
+        border: 1px solid #2dd5f554;
+        border-radius: 16px;
+        background:
+          radial-gradient(ellipse at 50% 30%, #c25aff19, transparent 60%),
+          linear-gradient(145deg, #322c5cdd, #26234beF);
+        box-shadow: inset 0 1px #ffffff12, 0 12px 32px #09071f30;
+        text-align: center;
+        transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .game-card:hover {
+        transform: translateY(-3px);
+        border-color: #52e4ffb0;
+        box-shadow: inset 0 1px #ffffff18, 0 14px 36px #00000045, 0 0 24px #50dfff15;
+      }
+
+      .game-card[hidden] {
+        display: none;
+      }
+
+      .game-symbol {
+        display: grid;
+        width: 58px;
+        height: 58px;
+        place-items: center;
+        margin: 18px 0 13px;
+        border: 1px solid #6be4ff30;
+        border-radius: 15px;
+        background: #161a405e;
+        font-size: 2rem;
+        filter: drop-shadow(0 0 13px #66dfff75);
+      }
+
+      .game-card h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 800;
+      }
+
+      .game-id {
+        margin: 5px 0 12px;
+        color: #a9a9c5;
+        font-size: 0.7rem;
+      }
+
+      .game-meta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+
+      .meta-tag {
+        padding: 4px 7px;
+        border: 1px solid #ffffff15;
+        border-radius: 999px;
+        color: #c0c2d4;
+        font-size: 0.64rem;
+      }
+
+      .meta-tag.deployed {
+        border-color: #56dda348;
+        color: #8be8b6;
+      }
+
+      .presence {
+        min-height: 38px;
+        margin: auto 0 10px;
+        color: #c8c9da;
+        font-size: 0.75rem;
+      }
+
+      .presence strong {
+        display: block;
+        color: #fff;
+        font-size: 1rem;
+      }
+
+      .presence small {
+        display: block;
+        margin-top: 3px;
+        color: #a8abc1;
+        font-size: 0.67rem;
+      }
+
+      .game-action {
+        display: inline-flex;
+        min-height: 37px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 0 10px;
+        border: 1px solid #36d8f6;
+        border-radius: 9px;
+        background: linear-gradient(110deg, #14c8ed, #50d7eb);
+        color: #11182a;
+        font-size: 0.77rem;
+        font-weight: 850;
+        transition: filter 140ms ease, transform 140ms ease;
+      }
+
+      .game-action:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.12);
+      }
+
+      .game-action.is-secondary {
+        border-color: #ae8bff7a;
+        background: #ffffff0b;
+        color: #d3cbff;
+      }
+
+      .game-action[aria-disabled="true"] {
+        cursor: default;
+        opacity: 0.75;
+      }
+
+      .empty-state {
+        margin: 0;
+        padding: 28px 16px;
+        color: #b7b9cd;
+        text-align: center;
+      }
+
+      .empty-state[hidden] {
+        display: none;
+      }
+
+      .hub-section {
+        margin-top: 38px;
+      }
+
+      .hub-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 13px;
+      }
+
+      .hub-link {
+        display: flex;
+        min-height: 64px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 15px;
+        border: 1px solid #a87bff44;
+        border-radius: 11px;
+        background: #29244eaa;
+        color: #ece9ff;
+        font-size: 0.83rem;
+        font-weight: 700;
+        transition: border-color 150ms ease, background 150ms ease;
+      }
+
+      .hub-link:hover {
+        border-color: #bba7ff;
+        background: #342d62;
+      }
+
+      .hub-link span:last-child {
+        color: #b9a7ff;
+        font-size: 1.1rem;
+      }
+
+      .footer-note {
+        margin: 22px 0 0;
+        color: #8589a4;
+        font-size: 0.7rem;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      @media (max-width: 850px) {
+        .game-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 540px) {
+        .topbar {
+          min-height: 61px;
+        }
+
+        .topbar-label {
+          font-size: 0.68rem;
+        }
+
+        main {
+          width: min(100% - 26px, 1160px);
+          padding-top: 22px;
+        }
+
+        .hero {
+          min-height: 104px;
+          margin-bottom: 22px;
+          padding: 18px 12px;
+        }
+
+        .section-heading {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .search {
+          width: 100%;
+        }
+
+        .game-grid {
+          gap: 11px;
+        }
+
+        .game-card {
+          min-height: 278px;
+          padding: 16px 11px 12px;
+        }
+
+        .game-symbol {
+          width: 50px;
+          height: 50px;
+          margin-top: 14px;
+          font-size: 1.7rem;
+        }
+
+        .game-card h3 {
+          font-size: 0.9rem;
+        }
+
+        .game-meta {
+          gap: 4px;
+        }
+
+        .meta-tag {
+          font-size: 0.59rem;
+        }
+
+        .hub-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Game Hub, trang chủ">
+        <span class="brand-mark" aria-hidden="true">👑</span>
+        <span>Game Hub</span>
+      </a>
+      <span class="topbar-label">Game của tụi mình</span>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <h1 id="page-title">Game của bạn, cuộc vui của mọi người</h1>
+          <p>Chọn game, xem ai đang chơi và tham gia cùng mọi người.</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="games-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="games-title">Các game đã tạo</h2>
+            <p>Số người chơi sẽ cập nhật trực tiếp khi game hỗ trợ chia sẻ trạng thái.</p>
+          </div>
+          <input class="search" id="game-search" type="search" placeholder="Tìm game..." autocomplete="off" aria-label="Tìm game">
+        </div>
+
+        <div class="game-grid" id="game-grid">
+          <article class="game-card" data-game="cung">
+            <span class="game-symbol" aria-hidden="true">🏹</span>
+            <h3>Cung</h3>
+            <p class="game-id">cung</p>
+            <div class="game-meta">
+              <span class="meta-tag deployed">Deployed</span>
+              <span class="meta-tag">Node</span>
+              <span class="meta-tag">virginia</span>
+              <span class="meta-tag">6m ago</span>
+            </div>
+            <p class="presence" id="cung-presence" aria-live="polite"><strong>Đang kết nối...</strong><small>Đang lấy danh sách phòng</small></p>
+            <a class="game-action" id="cung-action" href="https://cung-8tdj.onrender.com" target="_blank" rel="noopener noreferrer">Mở game</a>
+          </article>
+
+          <article class="game-card" data-game="bowling">
+            <span class="game-symbol" aria-hidden="true">🎳</span>
+            <h3>Bowling</h3>
+            <p class="game-id">bowling</p>
+            <div class="game-meta">
+              <span class="meta-tag deployed">Deployed</span>
+              <span class="meta-tag">Node</span>
+              <span class="meta-tag">virginia</span>
+              <span class="meta-tag">2h ago</span>
+            </div>
+            <p class="presence" id="bowling-presence" aria-live="polite">
+              <strong>Đang tải...</strong>
+              <small>Số người trong các phòng đang hoạt động</small>
+            </p>
+            <a class="game-action" id="bowling-action" href="/game">Mở game</a>
+          </article>
+
+          <article class="game-card" data-game="ca">
+            <span class="game-symbol" aria-hidden="true">🐟</span>
+            <h3>Đại Dương Cá</h3>
+            <p class="game-id">ca</p>
+            <div class="game-meta">
+              <span class="meta-tag deployed">Deployed</span>
+              <span class="meta-tag">Node</span>
+              <span class="meta-tag">virginia</span>
+              <span class="meta-tag">1d ago</span>
+            </div>
+            <p class="presence" id="ca-presence" aria-live="polite"><strong>Đang kết nối...</strong><small>Đang chờ dữ liệu realtime</small></p>
+            <a class="game-action" href="https://ca-3036.onrender.com" target="_blank" rel="noopener noreferrer">Vào thế giới chung</a>
+          </article>
+
+          <article class="game-card" data-game="heli">
+            <span class="game-symbol" aria-hidden="true">🚁</span>
+            <h3>Heli</h3>
+            <p class="game-id">heli</p>
+            <div class="game-meta">
+              <span class="meta-tag deployed">Deployed</span>
+              <span class="meta-tag">Node</span>
+              <span class="meta-tag">virginia</span>
+              <span class="meta-tag">1d ago</span>
+            </div>
+            <p class="presence" id="heli-presence" aria-live="polite"><strong>Đang kết nối...</strong><small>Đang chờ dữ liệu realtime</small></p>
+            <a class="game-action" href="https://heli-vl91.onrender.com" target="_blank" rel="noopener noreferrer">Vào thế giới chung</a>
+          </article>
+
+          <article class="game-card" data-game="f1">
+            <span class="game-symbol" aria-hidden="true">🏎️</span>
+            <h3>F1</h3>
+            <p class="game-id">f1</p>
+            <div class="game-meta">
+              <span class="meta-tag deployed">Deployed</span>
+              <span class="meta-tag">Node</span>
+              <span class="meta-tag">virginia</span>
+              <span class="meta-tag">1d ago</span>
+            </div>
+            <p class="presence" id="f1-presence" aria-live="polite"><strong>Đang kết nối...</strong><small>Đang chờ dữ liệu realtime</small></p>
+            <a class="game-action" href="https://f1-k32t.onrender.com" target="_blank" rel="noopener noreferrer">Vào thế giới chung</a>
+          </article>
+
+          <article class="game-card" data-game="duaxe">
+            <span class="game-symbol" aria-hidden="true">🏁</span>
+            <h3>Đua Xe</h3>
+            <p class="game-id">duaxe</p>
+            <div class="game-meta">
+              <span class="meta-tag deployed">Deployed</span>
+              <span class="meta-tag">Node</span>
+              <span class="meta-tag">virginia</span>
+              <span class="meta-tag">4d ago</span>
+            </div>
+            <p class="presence" id="duaxe-presence" aria-live="polite"><strong>Đang kết nối...</strong><small>Đang chờ dữ liệu realtime</small></p>
+            <a class="game-action" href="https://duaxe.onrender.com" target="_blank" rel="noopener noreferrer">Vào thế giới chung</a>
+          </article>
+        </div>
+        <p class="empty-state" id="empty-state" hidden>Không tìm thấy game phù hợp.</p>
+      </section>
+
+      <section class="hub-section" aria-labelledby="hubs-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="hubs-title">Khám phá thêm</h2>
+            <p>Các trang tổng hợp game khác.</p>
+          </div>
+        </div>
+        <div class="hub-grid">
+          <a class="hub-link" href="https://tranh-ba-game-gw3q.vercel.app/trinhduyet.html" target="_blank" rel="noopener noreferrer">
+            <span>Hub Game Tụi Mình</span><span aria-hidden="true">↗</span>
+          </a>
+          <a class="hub-link" href="https://tranh-ba-game-gw3q.vercel.app/tuongzalo.html" target="_blank" rel="noopener noreferrer">
+            <span>Game viết bởi AI</span><span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
+
+      <p class="footer-note">Các game chưa có API realtime sẽ không hiển thị số người chơi cho đến khi backend hỗ trợ cung cấp trạng thái.</p>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const searchInput = document.querySelector("#game-search");
+      const gameCards = [...document.querySelectorAll(".game-card")];
+      const emptyState = document.querySelector("#empty-state");
+      const cungPresence = document.querySelector("#cung-presence");
+      const cungAction = document.querySelector("#cung-action");
+      const bowlingPresence = document.querySelector("#bowling-presence");
+      const bowlingAction = document.querySelector("#bowling-action");
+      const liveGames = [
+        {
+          name: "Đại Dương Cá",
+          url: "https://ca-3036.onrender.com",
+          element: document.querySelector("#ca-presence"),
+          event: "update_players",
+          count: (players) => Object.keys(players).length,
+        },
+        {
+          name: "Heli",
+          url: "https://heli-vl91.onrender.com",
+          element: document.querySelector("#heli-presence"),
+          event: "update_players",
+          count: (players) => Object.keys(players).length,
+        },
+        {
+          name: "F1",
+          url: "https://f1-k32t.onrender.com",
+          element: document.querySelector("#f1-presence"),
+          event: "update_players",
+          count: (players) => Object.keys(players).length,
+        },
+      ];
+
+      function updatePresence(element, count, detail) {
+        const headline = element.querySelector("strong");
+        const caption = element.querySelector("small");
+        headline.textContent = `${count} người đang chơi`;
+        caption.textContent = detail;
+      }
+
+      function setPresenceState(element, headlineText, captionText) {
+        element.querySelector("strong").textContent = headlineText;
+        element.querySelector("small").textContent = captionText;
+      }
+
+      function resetCungAction() {
+        cungAction.href = "https://cung-8tdj.onrender.com";
+        cungAction.textContent = "Mở game";
+      }
+
+      function observeSharedWorldGames() {
+        for (const service of liveGames) {
+          const socket = io(service.url, { transports: ["websocket"] });
+          socket.on("connect", () => {
+            setPresenceState(service.element, "Đang chờ dữ liệu...", "Đã kết nối với máy chủ game");
+          });
+          socket.on(service.event, (players) => {
+            if (!players || typeof players !== "object" || Array.isArray(players)) {
+              console.error(`Dữ liệu người chơi không hợp lệ từ ${service.name}`);
+              setPresenceState(service.element, "Dữ liệu không hợp lệ", "Không thể đọc số người chơi");
+              return;
+            }
+            updatePresence(service.element, service.count(players), "Trong thế giới chung");
+          });
+          socket.on("disconnect", () => {
+            setPresenceState(service.element, "Mất kết nối", "Đang thử kết nối lại...");
+          });
+          socket.on("connect_error", (error) => {
+            setPresenceState(service.element, "Không kết nối được", "Dữ liệu realtime hiện không có sẵn");
+            console.error(`Không thể kết nối trạng thái ${service.name}:`, error);
+          });
+        }
+
+        function refreshCungPresence(socket) {
+          if (!socket.connected) {
+            return;
+          }
+
+          socket.timeout(5000).emit("list_rooms", (timeoutError, response) => {
+            if (timeoutError) {
+              setPresenceState(cungPresence, "API phòng chưa sẵn sàng", "Cần triển khai backend Cung");
+              resetCungAction();
+              console.error("Máy chủ Cung không phản hồi khi lấy danh sách phòng");
+              return;
+            }
+            if (
+              !response
+              || !response.ok
+              || !Array.isArray(response.rooms)
+              || !response.rooms.every((room) => (
+                room
+                && typeof room.code === "string"
+                && /^[A-Z0-9]{6}$/.test(room.code)
+                && Number.isInteger(room.playerCount)
+                && room.playerCount > 0
+              ))
+            ) {
+              setPresenceState(cungPresence, "Dữ liệu không hợp lệ", "Không thể đọc danh sách phòng");
+              resetCungAction();
+              console.error("Dữ liệu phòng Cung không hợp lệ");
+              return;
+            }
+
+            const activePlayers = response.rooms.reduce((total, room) => total + room.playerCount, 0);
+            updatePresence(cungPresence, activePlayers, `${response.rooms.length} phòng đang hoạt động`);
+            const busiestRoom = response.rooms.reduce((busiest, room) => {
+              return !busiest || room.playerCount > busiest.playerCount ? room : busiest;
+            }, null);
+            if (busiestRoom) {
+              cungAction.href = `https://cung-8tdj.onrender.com/?room=${encodeURIComponent(busiestRoom.code)}`;
+              cungAction.textContent = `Vào phòng (${busiestRoom.playerCount} người)`;
+            } else {
+              cungAction.href = "https://cung-8tdj.onrender.com";
+              cungAction.textContent = "Mở game";
+            }
+          });
+        }
+
+        function observeCungRooms() {
+          const socket = io("https://cung-8tdj.onrender.com", { transports: ["websocket"] });
+          const refresh = () => refreshCungPresence(socket);
+          socket.on("connect", refresh);
+          socket.on("disconnect", () => {
+            setPresenceState(cungPresence, "Mất kết nối", "Đang thử kết nối lại...");
+            resetCungAction();
+          });
+          socket.on("connect_error", (error) => {
+            setPresenceState(cungPresence, "Không kết nối được", "Dữ liệu realtime hiện không có sẵn");
+            resetCungAction();
+            console.error("Không thể kết nối trạng thái Cung:", error);
+          });
+          window.setInterval(refresh, 15000);
+        }
+
+        const raceSocket = io("https://duaxe.onrender.com", { transports: ["websocket"] });
+        const racePlayers = new Set();
+        raceSocket.on("connect", () => {
+          setPresenceState(document.querySelector("#duaxe-presence"), "Đang chờ dữ liệu...", "Đã kết nối với máy chủ game");
+        });
+        raceSocket.on("updateLeaderboard", (players) => {
+          if (!Array.isArray(players)) {
+            console.error("Dữ liệu bảng xếp hạng Đua Xe không hợp lệ");
+            setPresenceState(document.querySelector("#duaxe-presence"), "Dữ liệu không hợp lệ", "Không thể đọc số người chơi");
+            return;
+          }
+          racePlayers.clear();
+          for (const player of players) {
+            if (player && typeof player.id === "string") {
+              racePlayers.add(player.id);
+            }
+          }
+          updatePresence(document.querySelector("#duaxe-presence"), racePlayers.size, "Trong thế giới chung");
+        });
+        raceSocket.on("updatePlayerPos", (player) => {
+          if (player && typeof player.id === "string") {
+            racePlayers.add(player.id);
+            updatePresence(document.querySelector("#duaxe-presence"), racePlayers.size, "Trong thế giới chung");
+          }
+        });
+        raceSocket.on("removePlayer", (playerId) => {
+          if (typeof playerId === "string") {
+            racePlayers.delete(playerId);
+            updatePresence(document.querySelector("#duaxe-presence"), racePlayers.size, "Trong thế giới chung");
+          }
+        });
+        raceSocket.on("disconnect", () => {
+          setPresenceState(document.querySelector("#duaxe-presence"), "Mất kết nối", "Đang thử kết nối lại...");
+        });
+        raceSocket.on("connect_error", (error) => {
+          setPresenceState(document.querySelector("#duaxe-presence"), "Không kết nối được", "Dữ liệu realtime hiện không có sẵn");
+          console.error("Không thể kết nối trạng thái Đua Xe:", error);
+        });
+      }
+
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        let visibleCount = 0;
+        for (const card of gameCards) {
+          const matches = card.dataset.game.includes(query);
+          card.hidden = !matches;
+          visibleCount += Number(matches);
+        }
+        emptyState.hidden = visibleCount > 0;
+      });
+
+      async function refreshBowlingPresence() {
+        try {
+          const response = await fetch("/api/rooms", { headers: { Accept: "application/json" } });
+          if (!response.ok) {
+            throw new Error(`Máy chủ trả về ${response.status}`);
+          }
+
+          const data = await response.json();
+          if (
+            !data
+            || !Array.isArray(data.rooms)
+            || !data.rooms.every((room) => (
+              room
+              && typeof room.code === "string"
+              && /^[A-Z0-9]{6}$/.test(room.code)
+              && Number.isInteger(room.playerCount)
+              && room.playerCount > 0
+            ))
+          ) {
+            throw new Error("Dữ liệu phòng Bowling không hợp lệ");
+          }
+
+          const activePlayers = data.rooms.reduce((total, room) => {
+            return total + room.playerCount;
+          }, 0);
+          updatePresence(bowlingPresence, activePlayers, `${data.rooms.length} phòng đang hoạt động`);
+
+          const busiestRoom = data.rooms.reduce((busiest, room) => {
+            return !busiest || room.playerCount > busiest.playerCount ? room : busiest;
+          }, null);
+          if (busiestRoom) {
+            bowlingAction.href = `/game?room=${encodeURIComponent(busiestRoom.code)}`;
+            bowlingAction.textContent = `Vào phòng (${busiestRoom.playerCount} người)`;
+          } else {
+            bowlingAction.href = "/game";
+            bowlingAction.textContent = "Mở game";
+          }
+          bowlingAction.classList.remove("is-secondary");
+        } catch (error) {
+          setPresenceState(bowlingPresence, "Không tải được dữ liệu", "Hãy thử tải lại trang");
+          bowlingAction.href = "/game";
+          bowlingAction.textContent = "Mở game";
+          bowlingAction.classList.add("is-secondary");
+          console.error("Không thể tải trạng thái phòng Bowling:", error);
+        }
+      }
+
+      refreshBowlingPresence();
+      window.setInterval(refreshBowlingPresence, 15000);
+      observeCungRooms();
+      observeSharedWorldGames();
+    </script>
+  </body>
+</html>
