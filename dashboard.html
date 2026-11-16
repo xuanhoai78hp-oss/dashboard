@@ -719,6 +719,8 @@
           setPresenceState(document.querySelector("#duaxe-presence"), "Không kết nối được", "Dữ liệu realtime hiện không có sẵn");
           console.error("Không thể kết nối trạng thái Đua Xe:", error);
         });
+
+        observeCungRooms();
       }
 
       searchInput.addEventListener("input", () => {
@@ -781,7 +783,6 @@
 
       refreshBowlingPresence();
       window.setInterval(refreshBowlingPresence, 15000);
-      observeCungRooms();
       observeSharedWorldGames();
     </script>
   </body>
