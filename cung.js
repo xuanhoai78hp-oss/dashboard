@@ -47,6 +47,7 @@ function registerArchery(io) {
       name,
       score: 0,
       arrows: [],
+      history: [],
       connected: true,
       socketId: null,
       removeTimer: null,
@@ -57,11 +58,12 @@ function registerArchery(io) {
   function getPublicRoom(room) {
     return {
       code: room.code,
-      players: [...room.players.values()].map(({ id, name, score, arrows, connected }) => ({
+      players: [...room.players.values()].map(({ id, name, score, arrows, history, connected }) => ({
         id,
         name,
         score,
         arrows,
+        history,
         connected,
       })),
     };
@@ -215,6 +217,9 @@ function registerArchery(io) {
       player.arrows.push(payload.score);
       player.score += payload.score;
       player.lastArrowId = payload.arrowId;
+      if (player.arrows.length === 10) {
+        player.history.push(player.score);
+      }
       const response = { ok: true, room: getPublicRoom(room) };
       broadcastRoom(room);
       acknowledge(callback, response);
