@@ -5,6 +5,7 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
+const registerArchery = require('./cung');
 
 const app = express();
 const server = http.createServer(app);
@@ -15,15 +16,23 @@ const roomCodeCharacters = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const disconnectedPlayerGraceMs = 30_000;
 
 app.get('/', (req, res) => {
-  if (req.query.room) {
-    res.sendFile(path.join(__dirname, 'index.html'));
-    return;
-  }
   res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
 app.get('/game', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/cung', (req, res) => {
+  res.sendFile(path.join(__dirname, 'cung.html'));
+});
+
+app.get('/nencung.svg', (req, res) => {
+  res.sendFile(path.join(__dirname, 'nencung.svg'));
+});
+
+app.get('/cung.png', (req, res) => {
+  res.sendFile(path.join(__dirname, 'cung.png'));
 });
 
 app.get('/api/rooms', (req, res) => {
@@ -35,7 +44,6 @@ app.get('/api/rooms', (req, res) => {
     .filter((room) => room.playerCount > 0)
     .sort((left, right) => right.playerCount - left.playerCount);
 
-  res.set('Cache-Control', 'no-store');
   res.json({ rooms: activeRooms });
 });
 
@@ -205,6 +213,8 @@ function leaveCurrentRoom(socket) {
   }
 }
 
+registerArchery(io);
+
 io.on('connection', (socket) => {
   socket.on('create_room', (payload, callback) => {
     const playerId = normalizePlayerId(payload?.playerId);
@@ -333,5 +343,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(port, '0.0.0.0', () => {
-  console.log(`Bowling server is running on port ${port}`);
+  console.log(`Game Hub server is running on port ${port}`);
 });
