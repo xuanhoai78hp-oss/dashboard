@@ -1,0 +1,3111 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bắn cung — Chinh phục hồng tâm</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #10191d;
+        color: #f4f4ec;
+        font-synthesis: none;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        padding: 24px 18px;
+        background:
+          radial-gradient(ellipse at 50% -10%, #355451 0, transparent 48%),
+          radial-gradient(ellipse at 100% 100%, #382a25 0, transparent 42%),
+          #10191d;
+      }
+
+      main {
+        width: min(100%, 1040px);
+        margin: 0 auto;
+      }
+
+      .room-board {
+        position: absolute;
+        z-index: 3;
+        top: 14px;
+        left: 14px;
+        width: calc(100% - 28px);
+        max-height: 25%;
+        overflow: auto;
+        padding: 8px;
+        border: 1px solid #d6c18c50;
+        border-radius: 14px;
+        background: rgba(12, 19, 22, 0.62);
+        backdrop-filter: blur(14px) saturate(135%);
+        box-shadow: 0 12px 32px #0005, inset 0 1px #ffffff12;
+        transition: transform 280ms ease, opacity 280ms ease;
+      }
+
+      .target-detail {
+        display: grid;
+        position: relative;
+        align-content: start;
+        justify-items: center;
+        gap: 5px;
+        width: 100%;
+        max-height: min(43svh, 320px);
+        overflow: hidden;
+        padding: 8px;
+        border: 1px solid #d6c18c66;
+        border-radius: 14px;
+        background: linear-gradient(155deg, #1a2a27f2, #0b1114f5);
+        box-shadow: 0 12px 32px #0005, inset 0 1px #ffffff12;
+        backdrop-filter: blur(12px);
+        pointer-events: none;
+      }
+
+      .target-detail-header {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .target-detail-label {
+        color: #d7e2da;
+        font-size: 0.64rem;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+      }
+
+      .target-detail-live {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #f0cf91;
+        font-size: 0.53rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+
+      .target-detail-live::before {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #e66c58;
+        box-shadow: 0 0 8px #e66c58aa;
+        content: "";
+      }
+
+      #target-detail-canvas {
+        display: block;
+        width: min(100%, 184px);
+        height: auto;
+        aspect-ratio: 1;
+        border: 1px solid #f3f0e288;
+        border-radius: 9px;
+        box-shadow: 0 3px 14px #0008;
+      }
+
+      .target-history[hidden] {
+        display: none;
+      }
+
+      .target-history {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ffffff1a;
+        border-radius: 8px;
+        background: #070d10a8;
+      }
+
+      .target-history-title {
+        display: block;
+        margin-bottom: 4px;
+        color: #aebdb6;
+        font-size: 0.52rem;
+        font-weight: 750;
+        letter-spacing: 0.07em;
+      }
+
+      .target-history-scroll {
+        max-height: 52px;
+        overflow: auto;
+        scrollbar-color: #70857a #15201f;
+        scrollbar-width: thin;
+      }
+
+      .target-history-table {
+        width: max-content;
+        min-width: 100%;
+        border-collapse: collapse;
+        color: #edf2eb;
+        font-size: 0.58rem;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+      }
+
+      .target-history-table th,
+      .target-history-table td {
+        padding: 3px 5px;
+        border-top: 1px solid #ffffff16;
+        white-space: nowrap;
+      }
+
+      .target-history-table thead th,
+      .target-history-table tbody th {
+        color: #d7e2da;
+        font-weight: 700;
+      }
+
+      .target-history-table tbody td {
+        color: #f0cf91;
+      }
+
+      .target-detail.is-impact {
+        animation: target-impact 420ms ease-out;
+      }
+
+      @keyframes target-impact {
+        0% { transform: translateY(0) scale(1); }
+        24% { transform: translateY(3px) scale(0.97); }
+        58% { transform: translateY(-2px) scale(1.025); }
+        82% { transform: translateY(1px) scale(0.99); }
+        100% { transform: translateY(0) scale(1); }
+      }
+
+      .game.is-scoreboard-collapsed .room-board {
+        transform: translateY(calc(-100% - 18px));
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .room-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 6px;
+      }
+
+      .room-meta-label {
+        overflow: hidden;
+        color: #f0cf91;
+        font-size: 0.76rem;
+        font-weight: 750;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #share-room {
+        flex: 0 0 auto;
+        min-height: 34px;
+        padding: 6px 10px;
+        border-radius: 9px;
+        font-size: 0.72rem;
+      }
+
+      .game-status {
+        margin: 5px 0 0;
+        color: #c3d0c8;
+        font-size: 0.72rem;
+      }
+
+      .scoreboard-wrap {
+        overflow-x: auto;
+        margin: 0;
+      }
+
+      .scoreboard-wrap[hidden] {
+        display: none;
+      }
+
+      .scoreboard {
+        width: 100%;
+        min-width: 620px;
+        border-collapse: collapse;
+        font-size: 0.78rem;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+      }
+
+      .scoreboard caption {
+        padding: 10px;
+        color: #d7e2da;
+        font-weight: 750;
+        text-align: left;
+      }
+
+      .scoreboard th,
+      .scoreboard td {
+        min-width: 38px;
+        padding: 5px 4px;
+        border-top: 1px solid #ffffff16;
+      }
+
+      .scoreboard thead th {
+        color: #aebdb6;
+        font-weight: 700;
+      }
+
+      .scoreboard th:first-child {
+        min-width: 100px;
+        text-align: left;
+      }
+
+      .scoreboard tbody th {
+        overflow: hidden;
+        max-width: 160px;
+        color: #edf2eb;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .scoreboard-rolls {
+        display: block;
+        color: #aebdb6;
+        font-size: 0.68rem;
+        white-space: nowrap;
+      }
+
+      .scoreboard-frame-score {
+        display: block;
+        margin-top: 3px;
+        color: #f4d27a;
+      }
+
+      .scoreboard td.is-current {
+        background: #243a32;
+        color: #f4d27a;
+        font-weight: 800;
+      }
+
+      .lobby-card {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(20px, 5vw, 34px);
+        border: 1px solid #8da78d55;
+        border-radius: 26px;
+        background:
+          radial-gradient(ellipse at 100% 0%, #d9b76e1c, transparent 42%),
+          linear-gradient(145deg, #1d302fef, #10191df5 78%);
+        box-shadow: 0 28px 80px #0007, inset 0 1px #ffffff14;
+        backdrop-filter: blur(18px);
+      }
+
+      .lobby-card::before {
+        position: absolute;
+        top: -90px;
+        right: -70px;
+        width: 260px;
+        height: 260px;
+        border: 1px solid #f4d27a1b;
+        border-radius: 50%;
+        box-shadow: 0 0 0 22px #f4d27a08, 0 0 0 46px #f4d27a05;
+        content: "";
+        pointer-events: none;
+      }
+
+      .lobby-card > * {
+        position: relative;
+      }
+
+      .lobby-heading {
+        margin-bottom: 18px;
+      }
+
+      .lobby-heading h2 {
+        margin: 0;
+        font-size: clamp(1.6rem, 5vw, 2rem);
+        letter-spacing: -0.04em;
+      }
+
+      .lobby-heading p,
+      .lobby-note,
+      .lobby-help {
+        margin: 6px 0 0;
+        color: #aebdb6;
+        font-size: 0.84rem;
+        line-height: 1.5;
+      }
+
+      .character-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 10px;
+        margin-top: 18px;
+        padding: 14px;
+        border: 1px solid #72887b40;
+        border-radius: 16px;
+        background: #101b1e99;
+        box-shadow: inset 0 1px #ffffff0a;
+      }
+
+      .character-field {
+        display: grid;
+        gap: 7px;
+      }
+
+      .character-field label {
+        color: #d7e2da;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      .character-field input {
+        width: 100%;
+        min-height: 44px;
+        padding: 9px 11px;
+        border: 1px solid #526c60;
+        border-radius: 9px;
+        background: #14211d;
+        color: #f4f4ec;
+        font: inherit;
+      }
+
+      .character-status {
+        grid-column: 1 / -1;
+        margin: 0;
+        color: #aebdb6;
+        font-size: 0.76rem;
+      }
+
+      .lobby-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .room-code-entry {
+        display: grid;
+        gap: 6px;
+      }
+
+      .room-code-entry label {
+        color: #d7e2da;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      .room-code-entry > div {
+        display: flex;
+        gap: 8px;
+      }
+
+      .room-code-entry input {
+        width: 100%;
+        min-width: 0;
+        min-height: 52px;
+        padding: 9px 11px;
+        border: 1px solid #526c60;
+        border-radius: 9px;
+        background: #14211d;
+        color: #f4f4ec;
+        font: inherit;
+        font-weight: 750;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .room-code-entry button {
+        flex: 0 0 auto;
+        padding-inline: 14px;
+      }
+
+      .lobby-help {
+        text-align: center;
+      }
+
+      .lobby-notification {
+        min-height: 1.4em;
+        margin: 12px 0 0;
+        color: #f0cf91;
+        font-size: 0.83rem;
+      }
+
+      .game-mode {
+        margin: 0;
+        padding: 10px 12px;
+        border: 1px solid #45615a;
+        border-radius: 10px;
+        background: #1a2b2c;
+        color: #b6e2c3;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      section[hidden] {
+        display: none !important;
+      }
+
+      .field[hidden] {
+        display: none !important;
+      }
+
+      .game {
+        position: relative;
+        width: 100%;
+        height: 100svh;
+        min-height: 480px;
+        overflow: hidden;
+        background: #101719;
+      }
+
+      .lane-wrap {
+        display: grid;
+        position: absolute;
+        inset: 0;
+        grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+        place-items: center;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        background:
+          radial-gradient(ellipse at 50% 45%, #283633 0, #11191b 70%),
+          #11191b;
+      }
+
+      canvas {
+        display: block;
+        width: auto;
+        height: 100%;
+        max-width: none;
+        box-shadow: 0 14px 45px #0007;
+        aspect-ratio: 1 / 2;
+      }
+
+      #wind-flag-layer {
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: none;
+        pointer-events: none;
+      }
+
+      .controls {
+        display: grid;
+        position: absolute;
+        z-index: 4;
+        right: auto;
+        bottom: 12px;
+        left: 50%;
+        grid-template-columns: minmax(0, 1.65fr) minmax(96px, 0.85fr);
+        align-items: stretch;
+        gap: 12px;
+        width: min(calc(100% - 24px), 470px);
+        border: 0;
+        background: transparent;
+        transform: translateX(-50%);
+      }
+
+      .control-actions {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .control-actions button {
+        width: 100%;
+        min-height: 68px;
+        padding: 10px 8px;
+        font-size: clamp(0.7rem, 3.2vw, 0.88rem);
+        line-height: 1.25;
+      }
+
+      .power-meter {
+        width: 100%;
+        padding: 8px 6px;
+        border: 1px solid #d8c17a3d;
+        border-radius: 999px;
+        background: #090f10b8;
+      }
+
+      .power-meter-track {
+        height: 7px;
+        overflow: hidden;
+        border-radius: inherit;
+        background: #ffffff19;
+      }
+
+      .power-meter-fill {
+        display: block;
+        width: 50%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #8ccaa6, #f3d37e, #ef9666);
+        box-shadow: 0 0 14px #f3d37e77;
+        transition: width 80ms linear;
+      }
+
+      button {
+        min-height: 52px;
+        padding: 10px 8px;
+        border: 0;
+        border-radius: 13px;
+        background: linear-gradient(145deg, #d5efcc, #91c6a4);
+        color: #14211a;
+        font: inherit;
+        font-weight: 750;
+        cursor: pointer;
+        transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        background: #d1f1d8;
+        box-shadow: 0 8px 22px #b6e2c333;
+      }
+
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid #f4d27a;
+        outline-offset: 3px;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.65;
+      }
+
+      #throw {
+        touch-action: none;
+      }
+
+      button.secondary {
+        border: 1px solid #60766a;
+        background: #20302d;
+        color: #e3ebe5;
+      }
+
+      button.secondary:hover:not(:disabled) {
+        background: #263c3d;
+      }
+
+      @media (max-width: 720px) {
+        body {
+          padding: 12px;
+        }
+
+        .lobby-heading p {
+          margin-bottom: 18px;
+        }
+
+        .game {
+          width: 100vw;
+          height: 100svh;
+          min-height: 0;
+          margin: 0;
+          border: 0;
+          border-radius: 0;
+        }
+
+        .lane-wrap {
+          height: 100%;
+        }
+
+        canvas {
+          width: auto;
+          height: 100%;
+          max-width: none;
+          border-radius: 0;
+        }
+
+        .controls {
+          bottom: 12px;
+          gap: 9px;
+          width: calc(100% - 24px);
+          grid-template-columns: minmax(0, 1.65fr) minmax(92px, 0.85fr);
+        }
+
+        .control-actions {
+          gap: 8px;
+        }
+
+        .control-actions button {
+          min-height: 64px;
+          padding: 8px 6px;
+          font-size: 0.7rem;
+          line-height: 1.2;
+        }
+
+        .room-board {
+          top: 0;
+          left: 0;
+          width: 100%;
+          max-height: 28svh;
+          padding: 5px;
+          border-top: 0;
+          border-right: 0;
+          border-left: 0;
+          border-radius: 0 0 12px 12px;
+        }
+
+        .scoreboard {
+          width: 100%;
+          min-width: 0;
+          table-layout: fixed;
+          font-size: 0.58rem;
+        }
+
+        .scoreboard th,
+        .scoreboard td {
+          min-width: 0;
+          padding: 3px 1px;
+        }
+
+        .scoreboard th:first-child {
+          width: 18%;
+          min-width: 0;
+        }
+
+        .scoreboard-rolls {
+          font-size: 0.48rem;
+          white-space: normal;
+          overflow-wrap: anywhere;
+        }
+
+        .scoreboard-frame-score {
+          font-size: 0.58rem;
+        }
+
+        .lobby-actions {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .controls {
+          width: calc(100% - 16px);
+          grid-template-columns: minmax(0, 1.55fr) minmax(84px, 0.85fr);
+          gap: 7px;
+        }
+
+        .target-detail {
+          padding: 6px;
+        }
+
+        .control-actions button {
+          min-height: 60px;
+          padding: 6px 4px;
+          font-size: 0.65rem;
+        }
+      }
+
+      body.is-playing {
+        min-height: 100svh;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      body.is-playing main {
+        width: 100%;
+        height: 100svh;
+        margin: 0;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+
+        .target-detail.is-impact {
+          animation-duration: 0.01ms;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="lobby-card" id="lobby" aria-labelledby="lobby-title">
+        <div class="lobby-heading">
+          <h2 id="lobby-title">Trường bắn</h2>
+          <p>Luyện bắn cùng cung thủ máy hoặc tạo phòng để mời bạn bè cùng thi đấu.</p>
+        </div>
+
+        <section class="character-card" aria-labelledby="character-title">
+          <div class="character-field">
+            <label id="character-title" for="player-name">Tên nhân vật</label>
+            <input id="player-name" type="text" maxlength="20" value="Người chơi 1" autocomplete="nickname">
+          </div>
+          <button id="save-character" type="button">Lưu tên</button>
+          <p class="character-status" id="character-status" aria-live="polite">Tên được lưu trên thiết bị này.</p>
+        </section>
+
+        <div class="lobby-actions">
+          <button id="solo-game" type="button">Chơi solo cùng NPC</button>
+          <button id="create-game" type="button">Tạo phòng online</button>
+          <div class="room-code-entry">
+            <label for="room-code">Mã phòng</label>
+            <div>
+              <input id="room-code" type="text" maxlength="6" autocomplete="off" placeholder="ABC123">
+              <button id="join-room" class="secondary" type="button">Vào phòng</button>
+            </div>
+          </div>
+        </div>
+        <p class="lobby-notification" id="lobby-notification" aria-live="polite"></p>
+      </section>
+
+      <section class="game" id="game" aria-label="Màn chơi bắn cung" hidden>
+        <div class="lane-wrap">
+          <canvas id="lane" width="800" height="1600" role="img" aria-label="Trường bắn cung với bia hồng tâm">
+            Trình duyệt của bạn không hỗ trợ canvas.
+          </canvas>
+          <canvas id="wind-flag-layer" width="800" height="1600" aria-hidden="true"></canvas>
+        </div>
+        <section class="room-board" aria-label="Bảng điểm">
+          <div class="room-meta">
+            <div>
+              <span class="room-meta-label" id="room-label"></span>
+              <p class="game-status" id="game-status" aria-live="polite"></p>
+            </div>
+            <button class="secondary" id="share-room" type="button">Chia sẻ</button>
+          </div>
+          <div class="scoreboard-wrap" id="scoreboard-wrap" hidden aria-live="polite">
+            <table class="scoreboard">
+              <thead id="scoreboard-head"></thead>
+              <tbody id="scoreboard-body"></tbody>
+            </table>
+          </div>
+        </section>
+        <div class="controls">
+          <aside class="target-detail" id="target-detail" aria-label="Màn hình theo dõi bia và vết bắn">
+            <div class="target-detail-header">
+              <span class="target-detail-label">BIA</span>
+              <span class="target-detail-live">LIVE</span>
+            </div>
+            <canvas id="target-detail-canvas" width="240" height="240" role="img" aria-label="Bia phóng to, hiển thị các vết tên đã bắn"></canvas>
+            <section class="target-history" id="target-history" aria-label="Điểm số các ván đã chơi" hidden>
+              <span class="target-history-title">ĐIỂM CÁC VÁN</span>
+              <div class="target-history-scroll">
+                <table class="target-history-table">
+                  <thead id="target-history-head"></thead>
+                  <tbody id="target-history-body"></tbody>
+                </table>
+              </div>
+            </section>
+          </aside>
+          <div class="control-actions">
+            <div class="power-meter" id="power-field" hidden>
+              <div class="power-meter-track" id="power-meter" role="meter" aria-label="Lực kéo cung" aria-valuemin="50" aria-valuemax="100" aria-valuenow="50">
+                <span class="power-meter-fill" id="power-meter-fill"></span>
+              </div>
+            </div>
+            <button id="throw" type="button">Giữ để ngắm · thả để bắn</button>
+            <button class="secondary" id="back-to-lobby" type="button">Về sảnh</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const canvas = document.querySelector("#lane");
+      const context = canvas.getContext("2d");
+      const windFlagCanvas = document.querySelector("#wind-flag-layer");
+      const windFlagContext = windFlagCanvas.getContext("2d");
+      const targetDetail = document.querySelector("#target-detail");
+      const targetDetailCanvas = document.querySelector("#target-detail-canvas");
+      const targetDetailContext = targetDetailCanvas.getContext("2d");
+      const targetHistory = document.querySelector("#target-history");
+      const targetHistoryHead = document.querySelector("#target-history-head");
+      const targetHistoryBody = document.querySelector("#target-history-body");
+      const targetHistoryScroll = document.querySelector(".target-history-scroll");
+      const powerField = document.querySelector("#power-field");
+      const powerMeter = document.querySelector("#power-meter");
+      const powerMeterFill = document.querySelector("#power-meter-fill");
+      const throwButton = document.querySelector("#throw");
+      const backToLobbyButton = document.querySelector("#back-to-lobby");
+      const roomBoard = document.querySelector(".room-board");
+      const scoreboardWrap = document.querySelector("#scoreboard-wrap");
+      const scoreboardHead = document.querySelector("#scoreboard-head");
+      const scoreboardBody = document.querySelector("#scoreboard-body");
+      const lobby = document.querySelector("#lobby");
+      const game = document.querySelector("#game");
+      const playerNameInput = document.querySelector("#player-name");
+      const saveCharacterButton = document.querySelector("#save-character");
+      const characterStatus = document.querySelector("#character-status");
+      const soloGameButton = document.querySelector("#solo-game");
+      const createGameButton = document.querySelector("#create-game");
+      const roomCodeInput = document.querySelector("#room-code");
+      const joinRoomButton = document.querySelector("#join-room");
+      const lobbyNotification = document.querySelector("#lobby-notification");
+      const roomLabel = document.querySelector("#room-label");
+      const gameStatus = document.querySelector("#game-status");
+      const shareRoomButton = document.querySelector("#share-room");
+      const socket = typeof window.io === "function" ? window.io() : null;
+
+      const width = 800;
+      const height = 1600;
+      const centerX = width / 2;
+      const laneTopY = 90;
+      const ARCHERY_DISTANCE_METERS = 70;
+      const ARROW_SPEED_METERS_PER_SECOND = 80;
+      const backgroundImage = new Image();
+      const bowSprite = new Image();
+      const pins = [];
+      backgroundImage.src = "./nencung.svg";
+      bowSprite.src = "./cung.png";
+      let ball = null;
+      let ballReturning = false;
+      let bowlerReleasePosition = null;
+      let lockedAimOffset = 0;
+      let animationFrame = null;
+      let chargeAnimationFrame = null;
+      let chargeStartTime = 0;
+      let shotTaken = false;
+      let impactPlayed = false;
+      let soundEnabled = true;
+      let audioContext = null;
+      let masterGain = null;
+      let playerName = "Người chơi 1";
+      let playerId = "";
+      let roomCode = "";
+      let shouldAutoJoinRoom = false;
+      let gamePlayers = [];
+      let soloMatchHistoryByPlayer = loadSoloMatchHistory();
+      let currentFrameIndex = -1;
+      let gameStarted = false;
+      let gameFinished = false;
+      let gameMode = "online";
+      let currentArrowIndex = 0;
+      let targetTransitionStart = 0;
+      let targetTransitionDuration = 900;
+      let targetStart = { x: centerX, y: 562 };
+      let targetEnd = { x: centerX, y: 562 };
+      let frozenTargetPosition = { x: centerX, y: 562 };
+      let targetMotionActive = false;
+      let targetZoomed = false;
+      let targetMarks = [];
+      let windAngle = Math.random() * Math.PI * 2;
+      let idleWindAngle = windAngle;
+      let targetWindAngle = windAngle;
+      let targetWindStrength = 0.45;
+      let lastTargetSample = { x: centerX, y: 562, time: 0 };
+      let windAnimationFrame = null;
+      let lastWindFrameTime = 0;
+      let nextIdleWindShift = 0;
+      let firedArrow = null;
+      let npcTimeout = null;
+      let pendingRackReset = false;
+      let pendingRoll = null;
+      let throwChargePhase = "idle";
+      let chargePower = 50;
+      let nextRollTimeout = null;
+      let pendingArrow = null;
+      let rollsSinceScoreboardCollapsed = 0;
+
+      function setScoreboardCollapsed(collapsed) {
+        game.classList.toggle("is-scoreboard-collapsed", collapsed);
+        roomBoard.setAttribute("aria-hidden", String(collapsed));
+        roomBoard.inert = collapsed;
+        if (!collapsed) {
+          rollsSinceScoreboardCollapsed = 0;
+        }
+      }
+
+      function loadSoloMatchHistory() {
+        try {
+          const stored = JSON.parse(window.localStorage.getItem("archery-solo-match-history") ?? "{}");
+          if (!stored || typeof stored !== "object" || Array.isArray(stored)) {
+            throw new Error("Dữ liệu lịch sử không đúng định dạng.");
+          }
+
+          const history = new Map();
+          for (const [id, scores] of Object.entries(stored)) {
+            if (
+              !Array.isArray(scores)
+              || !scores.every((score) => Number.isInteger(score) && score >= 0 && score <= 100)
+            ) {
+              console.warn(`Bỏ qua lịch sử không hợp lệ của ${id}.`);
+              continue;
+            }
+            history.set(id, scores);
+          }
+          return history;
+        } catch (error) {
+          console.warn("Không đọc được lịch sử các ván solo:", error);
+          return new Map();
+        }
+      }
+
+      function saveSoloMatchHistory() {
+        try {
+          window.localStorage.setItem(
+            "archery-solo-match-history",
+            JSON.stringify(Object.fromEntries(soloMatchHistoryByPlayer)),
+          );
+          return true;
+        } catch (error) {
+          console.error("Không lưu được lịch sử các ván solo:", error);
+          return false;
+        }
+      }
+
+      try {
+        const savedName = window.localStorage.getItem("archery-player-name");
+        if (savedName?.trim()) {
+          playerName = savedName.trim().slice(0, 20);
+        }
+      } catch (error) {
+        characterStatus.textContent = `Không đọc được tên đã lưu: ${error.message}`;
+      }
+
+      try {
+        playerId = window.sessionStorage.getItem("archery-player-id") || "";
+        if (!playerId) {
+          playerId = window.crypto?.randomUUID?.()
+            ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          window.sessionStorage.setItem("archery-player-id", playerId);
+        }
+      } catch {
+        playerId = window.crypto?.randomUUID?.()
+          ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      }
+
+      playerNameInput.value = playerName;
+
+      const requestedRoomCode = new URLSearchParams(window.location.search).get("room");
+      if (requestedRoomCode) {
+        roomCodeInput.value = requestedRoomCode.toUpperCase().slice(0, 6);
+        shouldAutoJoinRoom = true;
+      }
+
+      socket?.on("connect", () => {
+        if (gameStarted && roomCode) {
+          rejoinCurrentRoom();
+        } else if (shouldAutoJoinRoom) {
+          shouldAutoJoinRoom = false;
+          joinGame();
+        } else {
+          characterStatus.textContent = "Đã kết nối máy chủ phòng chơi.";
+        }
+      });
+
+      socket?.on("disconnect", () => {
+        if (gameStarted) {
+          gameStatus.textContent = "Mất kết nối; đang thử kết nối lại…";
+        } else {
+          lobbyNotification.textContent = "Mất kết nối máy chủ; đang thử kết nối lại…";
+        }
+      });
+
+      socket?.on("connect_error", () => {
+        const message = "Không kết nối được máy chủ phòng chơi.";
+        if (gameStarted) {
+          gameStatus.textContent = message;
+        } else {
+          lobbyNotification.textContent = message;
+        }
+      });
+
+      socket?.on("room_state", (room) => {
+        if (room.code !== roomCode) {
+          return;
+        }
+        applyRoomState(room);
+      });
+
+      const pinOffsets = [
+        [0],
+        [-18, 18],
+        [-38, 0, 38],
+        [-60, -20, 20, 60],
+      ];
+
+      for (let row = 0; row < pinOffsets.length; row += 1) {
+        for (const offset of pinOffsets[row]) {
+          pins.push({
+            x: centerX + offset * 0.7,
+            y: laneTopY + 18 + row * 17,
+            row,
+            fallen: false,
+            flight: null,
+            removed: false,
+          });
+        }
+      }
+
+      function getFrameScore(player, frameIndex) {
+        const frameRolls = player.frames[frameIndex].rolls;
+        if (frameRolls.length === 0) {
+          return null;
+        }
+
+        return Math.min(frameRolls.reduce((sum, pinsDown) => sum + pinsDown, 0), 20);
+      }
+
+      function isFrameComplete(frame, frameIndex) {
+        const rolls = frame.rolls;
+        if (rolls.length >= 2 && rolls[0] + rolls[1] >= 20) {
+          return true;
+        }
+        if (frameIndex < 9) {
+          return rolls.length >= (rolls[0] === 10 ? 3 : 2);
+        }
+        if (rolls.length < 2) {
+          return false;
+        }
+        return rolls.length >= (rolls[0] === 10 || rolls[0] + rolls[1] === 10 ? 3 : 2);
+      }
+
+      function getCurrentFrameIndex(player) {
+        return player.frames.findIndex((frame, index) => !isFrameComplete(frame, index));
+      }
+
+      function renderSoloScoreboard() {
+        scoreboardHead.replaceChildren();
+        scoreboardBody.replaceChildren();
+        scoreboardWrap.hidden = !gameStarted;
+        roomLabel.textContent = gameFinished
+          ? "Ván hoàn tất · 10 mũi tên"
+          : `Mũi tên ${Math.min(currentArrowIndex + 1, 10)}/10 · đấu với NPC`;
+
+        const headerRow = document.createElement("tr");
+        const playerHeading = document.createElement("th");
+        playerHeading.scope = "col";
+        playerHeading.textContent = "Cung thủ";
+        headerRow.append(playerHeading);
+        for (let arrowIndex = 0; arrowIndex < 10; arrowIndex += 1) {
+          const heading = document.createElement("th");
+          heading.scope = "col";
+          heading.textContent = String(arrowIndex + 1);
+          headerRow.append(heading);
+        }
+        const totalHeading = document.createElement("th");
+        totalHeading.scope = "col";
+        totalHeading.textContent = "Tổng";
+        headerRow.append(totalHeading);
+        scoreboardHead.append(headerRow);
+
+        for (const player of gamePlayers) {
+          const row = document.createElement("tr");
+          const nameCell = document.createElement("th");
+          nameCell.scope = "row";
+          nameCell.textContent = player.name;
+          row.append(nameCell);
+          for (let arrowIndex = 0; arrowIndex < 10; arrowIndex += 1) {
+            const cell = document.createElement("td");
+            const score = player.arrows[arrowIndex];
+            cell.textContent = score === undefined ? "—" : String(score);
+            if (arrowIndex === currentArrowIndex && !gameFinished) {
+              cell.className = "is-current";
+            }
+            row.append(cell);
+          }
+          const totalCell = document.createElement("td");
+          totalCell.textContent = String(player.score);
+          row.append(totalCell);
+          scoreboardBody.append(row);
+        }
+      }
+
+      function renderTargetHistory() {
+        targetHistoryHead.replaceChildren();
+        targetHistoryBody.replaceChildren();
+        const players = gamePlayers;
+        const roundCount = players.reduce(
+          (maximum, player) => Math.max(maximum, player.history?.length ?? 0),
+          0,
+        );
+        targetHistory.hidden = !gameStarted || roundCount === 0;
+        if (targetHistory.hidden) {
+          return;
+        }
+
+        const previousScrollTop = targetHistoryScroll.scrollTop;
+        const previousScrollLeft = targetHistoryScroll.scrollLeft;
+        const headerRow = document.createElement("tr");
+        const roundHeading = document.createElement("th");
+        roundHeading.scope = "col";
+        roundHeading.textContent = "Ván";
+        headerRow.append(roundHeading);
+        for (const player of players) {
+          const heading = document.createElement("th");
+          heading.scope = "col";
+          heading.textContent = player.name.length > 9 ? `${player.name.slice(0, 8)}…` : player.name;
+          heading.title = player.name;
+          headerRow.append(heading);
+        }
+        targetHistoryHead.append(headerRow);
+
+        for (let roundIndex = roundCount - 1; roundIndex >= 0; roundIndex -= 1) {
+          const row = document.createElement("tr");
+          const roundCell = document.createElement("th");
+          roundCell.scope = "row";
+          roundCell.textContent = String(roundIndex + 1);
+          row.append(roundCell);
+          for (const player of players) {
+            const scoreCell = document.createElement("td");
+            scoreCell.textContent = player.history?.[roundIndex] === undefined
+              ? "—"
+              : String(player.history[roundIndex]);
+            row.append(scoreCell);
+          }
+          targetHistoryBody.append(row);
+        }
+        targetHistoryScroll.scrollTop = previousScrollTop;
+        targetHistoryScroll.scrollLeft = previousScrollLeft;
+      }
+
+      function renderRoomBoard() {
+        renderTargetHistory();
+        if (gameMode === "solo") {
+          renderSoloScoreboard();
+          return;
+        }
+
+        scoreboardHead.replaceChildren();
+        scoreboardBody.replaceChildren();
+        scoreboardWrap.hidden = !gameStarted;
+        const onlineCount = gamePlayers.filter((player) => player.connected).length;
+        roomLabel.textContent = `Phòng ${roomCode} · ${onlineCount}/${gamePlayers.length} người`;
+        const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+        currentArrowIndex = ownPlayer ? ownPlayer.arrows.length : 0;
+        gameFinished = currentArrowIndex >= 10;
+        if (socket?.connected && ownPlayer) {
+          gameStatus.textContent = gameFinished
+            ? `Bạn đã hoàn thành ván · tổng ${ownPlayer.score} điểm`
+            : `Bạn đang ở mũi tên ${currentArrowIndex + 1}/10 · mỗi người chơi theo nhịp riêng`;
+        }
+        if (!gameStarted) {
+          return;
+        }
+
+        const headerRow = document.createElement("tr");
+        const playerHeading = document.createElement("th");
+        playerHeading.scope = "col";
+        playerHeading.textContent = "Người chơi";
+        headerRow.append(playerHeading);
+        for (let frameIndex = 0; frameIndex < 10; frameIndex += 1) {
+          const heading = document.createElement("th");
+          heading.scope = "col";
+          heading.textContent = String(frameIndex + 1);
+          headerRow.append(heading);
+        }
+        const totalHeading = document.createElement("th");
+        totalHeading.scope = "col";
+        totalHeading.textContent = "Tổng";
+        headerRow.append(totalHeading);
+        scoreboardHead.append(headerRow);
+
+        for (const player of gamePlayers) {
+          const row = document.createElement("tr");
+          const nameCell = document.createElement("th");
+          nameCell.scope = "row";
+          nameCell.textContent = player.connected ? player.name : `${player.name} · mất kết nối`;
+          row.append(nameCell);
+
+          for (let arrowIndex = 0; arrowIndex < 10; arrowIndex += 1) {
+            const cell = document.createElement("td");
+            const pendingUnconfirmed = player.id === playerId
+              && pendingArrow
+              && player.arrows[pendingArrow.arrowIndex] === undefined;
+            const score = player.arrows[arrowIndex]
+              ?? (pendingUnconfirmed && pendingArrow.arrowIndex === arrowIndex ? pendingArrow.score : undefined);
+            cell.textContent = score === undefined ? "—" : String(score);
+            if (player.id === playerId && arrowIndex === currentArrowIndex && !gameFinished) {
+              cell.className = "is-current";
+            }
+            row.append(cell);
+          }
+
+          const totalCell = document.createElement("td");
+          const provisionalScore = player.id === playerId
+            && pendingArrow
+            && player.arrows[pendingArrow.arrowIndex] === undefined
+            ? pendingArrow.score
+            : 0;
+          totalCell.textContent = String(player.score + provisionalScore);
+          row.append(totalCell);
+          scoreboardBody.append(row);
+        }
+      }
+
+      function savePlayerName() {
+        const name = playerNameInput.value.trim().slice(0, 20);
+        if (!name) {
+          characterStatus.textContent = "Nhập tên nhân vật trước khi lưu.";
+          playerNameInput.focus();
+          return false;
+        }
+
+        playerName = name;
+        try {
+          window.localStorage.setItem("archery-player-name", playerName);
+          characterStatus.textContent = `Đã lưu tên “${playerName}” trên thiết bị này.`;
+        } catch (error) {
+          characterStatus.textContent = `Không lưu được tên trên thiết bị: ${error.message}`;
+        }
+        renderRoomBoard();
+        return true;
+      }
+
+      function emitRoomCommand(eventName, payload) {
+        return new Promise((resolve, reject) => {
+          if (!socket?.connected) {
+            reject(new Error("Đang mất kết nối tới máy chủ."));
+            return;
+          }
+          socket.timeout(7000).emit(eventName, payload, (timeoutError, response) => {
+            if (timeoutError) {
+              reject(new Error("Máy chủ không phản hồi. Hãy thử lại."));
+              return;
+            }
+            if (!response?.ok) {
+              reject(new Error(response?.error || "Không thể hoàn tất thao tác."));
+              return;
+            }
+            resolve(response);
+          });
+        });
+      }
+
+      function applyRoomState(room) {
+        gameMode = "online";
+        gamePlayers = room.players;
+        if (!gamePlayers.some((player) => player.id === playerId)) {
+          gameStatus.textContent = "Bạn đã rời khỏi phòng.";
+          returnToLobby();
+          return;
+        }
+        renderRoomBoard();
+      }
+
+      function enterRoom(room) {
+        gameMode = "online";
+        roomCode = room.code;
+        gamePlayers = room.players;
+        gameStarted = true;
+        setScoreboardCollapsed(false);
+        lobby.hidden = true;
+        game.hidden = false;
+        document.body.classList.add("is-playing");
+        window.history.replaceState(null, "", `?room=${encodeURIComponent(roomCode)}`);
+        applyRoomState(room);
+        shareRoomButton.hidden = false;
+        shareRoomButton.textContent = "Chia sẻ";
+        prepareNextArrow();
+        startWindAnimation();
+      }
+
+      function prepareNextArrow() {
+        const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+        currentArrowIndex = ownPlayer ? ownPlayer.arrows.length : 0;
+        gameFinished = currentArrowIndex >= 10;
+        pendingArrow = null;
+        shotTaken = false;
+        throwChargePhase = "idle";
+        frozenTargetPosition = { x: centerX, y: 562 };
+        targetStart = frozenTargetPosition;
+        targetEnd = frozenTargetPosition;
+        targetMotionActive = false;
+        targetZoomed = false;
+        targetMarks = [];
+        firedArrow = null;
+        powerField.hidden = true;
+        throwButton.disabled = false;
+        setScoreboardCollapsed(false);
+        syncThrowButtonLabel();
+        renderRoomBoard();
+        drawLane();
+        startWindAnimation();
+      }
+
+      function startSoloGame() {
+        if (!savePlayerName()) {
+          return;
+        }
+
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+        if (npcTimeout !== null) {
+          window.clearTimeout(npcTimeout);
+          npcTimeout = null;
+        }
+        gameMode = "solo";
+        roomCode = "";
+        currentArrowIndex = 0;
+        gameFinished = false;
+        gameStarted = true;
+        shotTaken = false;
+        throwChargePhase = "idle";
+        powerField.hidden = true;
+        firedArrow = null;
+        targetMotionActive = false;
+        targetZoomed = false;
+        frozenTargetPosition = { x: centerX, y: 562 };
+        targetMarks = [];
+        gamePlayers = [
+          {
+            id: playerId,
+            name: playerName,
+            connected: true,
+            arrows: [],
+            score: 0,
+            history: soloMatchHistoryByPlayer.get(playerId) ?? [],
+          },
+          {
+            id: "archery-npc",
+            name: "Cung thủ máy",
+            connected: true,
+            arrows: [],
+            score: 0,
+            history: soloMatchHistoryByPlayer.get("archery-npc") ?? [],
+          },
+        ];
+        targetTransitionStart = performance.now();
+        targetTransitionDuration = 900;
+        targetStart = frozenTargetPosition;
+        targetEnd = frozenTargetPosition;
+        setScoreboardCollapsed(false);
+        lobby.hidden = true;
+        game.hidden = false;
+        document.body.classList.add("is-playing");
+        shareRoomButton.hidden = false;
+        shareRoomButton.textContent = "Mời bạn";
+        window.history.replaceState(null, "", window.location.pathname);
+        gameStatus.textContent = "Giữ nút để ngắm, canh bia đang chuyển động rồi thả để bắn.";
+        throwButton.disabled = false;
+        syncThrowButtonLabel();
+        renderRoomBoard();
+        drawLane();
+      }
+
+      async function startOnlineRoom(shareInvite = false) {
+        if (!savePlayerName()) {
+          return;
+        }
+        createGameButton.disabled = true;
+        joinRoomButton.disabled = true;
+        soloGameButton.disabled = true;
+        lobbyNotification.textContent = "Đang tạo phòng online…";
+        try {
+          const response = await emitRoomCommand("archery_create_room", { playerId, name: playerName });
+          enterRoom(response.room);
+          if (shareInvite) {
+            await shareRoomLink();
+          }
+        } catch (error) {
+          if (gameMode === "solo") {
+            gameStatus.textContent = error.message;
+          } else {
+            lobbyNotification.textContent = error.message;
+          }
+        } finally {
+          createGameButton.disabled = false;
+          joinRoomButton.disabled = false;
+          soloGameButton.disabled = false;
+        }
+      }
+
+      async function startGame() {
+        await startOnlineRoom();
+      }
+
+      async function joinGame() {
+        if (!savePlayerName()) {
+          return;
+        }
+        const requestedRoomCode = roomCodeInput.value.trim().toUpperCase();
+        if (!requestedRoomCode) {
+          lobbyNotification.textContent = "Nhập mã phòng trước khi tham gia.";
+          roomCodeInput.focus();
+          return;
+        }
+        createGameButton.disabled = true;
+        joinRoomButton.disabled = true;
+        lobbyNotification.textContent = "Đang vào phòng…";
+        try {
+          const response = await emitRoomCommand("archery_join_room", {
+            roomCode: requestedRoomCode,
+            playerId,
+            name: playerName,
+          });
+          enterRoom(response.room);
+        } catch (error) {
+          lobbyNotification.textContent = error.message;
+        } finally {
+          createGameButton.disabled = false;
+          joinRoomButton.disabled = false;
+        }
+      }
+
+      async function rejoinCurrentRoom() {
+        try {
+          const response = await emitRoomCommand("archery_join_room", {
+            roomCode,
+            playerId,
+            name: playerName,
+          });
+          applyRoomState(response.room);
+          if (pendingArrow) {
+            submitPendingArrow();
+          }
+        } catch (error) {
+          gameStatus.textContent = error.message;
+        }
+      }
+
+      async function shareRoomLink() {
+        if (gameMode === "solo") {
+          await startOnlineRoom(true);
+          return;
+        }
+        const inviteUrl = new URL(window.location.href);
+        inviteUrl.searchParams.set("room", roomCode);
+        try {
+          await window.navigator.clipboard.writeText(inviteUrl.href);
+          gameStatus.textContent = "Đã sao chép liên kết mời chơi.";
+        } catch (error) {
+          gameStatus.textContent = `Không sao chép được liên kết. Mã phòng: ${roomCode}`;
+        }
+      }
+
+      function syncThrowButtonLabel() {
+        if (throwButton.disabled) {
+          return;
+        }
+
+        if (throwChargePhase === "charging") {
+          throwButton.textContent = gameMode === "solo" ? "Đang ngắm…" : "Đang kéo cung…";
+          return;
+        }
+
+        throwButton.textContent = gameFinished
+          ? "Ván mới"
+          : gameMode === "solo"
+            ? "Giữ để ngắm · thả để bắn"
+            : "Giữ để kéo cung";
+      }
+
+      function resetPinRack() {
+        for (const pin of pins) {
+          pin.fallen = false;
+          pin.flight = null;
+          pin.removed = false;
+        }
+      }
+
+      function prepareNextRoll(resetRack) {
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+        if (npcTimeout !== null) {
+          window.clearTimeout(npcTimeout);
+          npcTimeout = null;
+        }
+        if (nextRollTimeout !== null) {
+          window.clearTimeout(nextRollTimeout);
+          nextRollTimeout = null;
+        }
+
+        if (resetRack) {
+          resetPinRack();
+        }
+
+        ball = null;
+        ballReturning = false;
+        targetMotionActive = false;
+        targetZoomed = false;
+        firedArrow = null;
+        bowlerReleasePosition = null;
+        lockedAimOffset = 0;
+        shotTaken = false;
+        impactPlayed = false;
+        throwChargePhase = "idle";
+        chargePower = 50;
+        pendingRackReset = false;
+        pendingRoll = null;
+        powerField.hidden = true;
+        const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+        currentFrameIndex = ownPlayer ? getCurrentFrameIndex(ownPlayer) : -1;
+        gameFinished = currentFrameIndex < 0;
+        throwButton.disabled = false;
+        updateControls();
+        syncThrowButtonLabel();
+        renderRoomBoard();
+      }
+
+      function scheduleNextRollPreparation() {
+        if (nextRollTimeout !== null) {
+          window.clearTimeout(nextRollTimeout);
+        }
+        nextRollTimeout = window.setTimeout(() => {
+          nextRollTimeout = null;
+          if (gameStarted && !gameFinished && !pendingRoll && !ballReturning) {
+            prepareNextRoll(pendingRackReset);
+          }
+        }, 900);
+      }
+
+      function returnToLobby() {
+        if (animationFrame !== null) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = null;
+        }
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+        if (nextRollTimeout !== null) {
+          window.clearTimeout(nextRollTimeout);
+          nextRollTimeout = null;
+        }
+        if (socket?.connected && roomCode) {
+          socket.emit("archery_leave_room", { roomCode });
+        }
+        roomCode = "";
+        gamePlayers = [];
+        currentFrameIndex = -1;
+        gameFinished = false;
+        pendingRoll = null;
+        pendingArrow = null;
+        rollsSinceScoreboardCollapsed = 0;
+        setScoreboardCollapsed(false);
+        gameStarted = false;
+        gameMode = "online";
+        currentArrowIndex = 0;
+        firedArrow = null;
+        if (npcTimeout !== null) {
+          window.clearTimeout(npcTimeout);
+          npcTimeout = null;
+        }
+        if (windAnimationFrame !== null) {
+          cancelAnimationFrame(windAnimationFrame);
+          windAnimationFrame = null;
+        }
+        game.hidden = true;
+        lobby.hidden = false;
+        document.body.classList.remove("is-playing");
+        ball = null;
+        ballReturning = false;
+        targetMotionActive = false;
+        bowlerReleasePosition = null;
+        lockedAimOffset = 0;
+        shotTaken = false;
+        throwChargePhase = "idle";
+        powerField.hidden = true;
+        window.history.replaceState(null, "", window.location.pathname);
+        shareRoomButton.hidden = false;
+        shareRoomButton.textContent = "Chia sẻ";
+        renderRoomBoard();
+        createGameButton.focus();
+      }
+
+      function drawLane() {
+        context.clearRect(0, 0, width, height);
+        if (backgroundImage.complete && backgroundImage.naturalWidth > 0) {
+          context.drawImage(backgroundImage, 0, 0, width, height);
+        } else {
+          context.fillStyle = "#294735";
+          context.fillRect(0, 0, width, height);
+        }
+
+        const now = performance.now();
+        const target = getTargetPosition(now);
+        const aiming = throwChargePhase === "charging";
+        drawTarget(target.x, target.y, targetZoomed ? 70 : 23, targetMarks);
+        drawTargetDetail();
+
+        if (firedArrow) {
+          drawFlyingArrow(firedArrow);
+        }
+
+        if (bowSprite.complete && bowSprite.naturalWidth > 0) {
+          const frameWidth = bowSprite.naturalWidth / 3;
+          const frame = firedArrow ? 2 : aiming ? 1 : 0;
+          context.drawImage(bowSprite, frame * frameWidth, 0, frameWidth, bowSprite.naturalHeight, 164, 64, 472, 1086);
+        }
+
+        if (aiming || firedArrow) {
+          const aimPoint = aiming
+            ? getAimPoint(now)
+            : { x: firedArrow.x, y: firedArrow.y };
+          context.strokeStyle = "#fff4c9d9";
+          context.lineWidth = 2;
+          context.beginPath();
+          context.arc(aimPoint.x, aimPoint.y, 13, 0, Math.PI * 2);
+          context.moveTo(aimPoint.x - 20, aimPoint.y);
+          context.lineTo(aimPoint.x - 7, aimPoint.y);
+          context.moveTo(aimPoint.x + 7, aimPoint.y);
+          context.lineTo(aimPoint.x + 20, aimPoint.y);
+          context.moveTo(aimPoint.x, aimPoint.y - 20);
+          context.lineTo(aimPoint.x, aimPoint.y - 7);
+          context.moveTo(aimPoint.x, aimPoint.y + 7);
+          context.lineTo(aimPoint.x, aimPoint.y + 20);
+          context.stroke();
+        }
+
+      }
+
+      function getTargetPosition(now) {
+        if (!targetMotionActive) {
+          return frozenTargetPosition;
+        }
+
+        const heldFor = Math.max(0, now - chargeStartTime);
+        while (now >= targetTransitionStart + targetTransitionDuration) {
+          targetStart = targetEnd;
+          targetTransitionStart += targetTransitionDuration;
+          targetTransitionDuration = Math.max(160, 900 / (1 + heldFor / 1400));
+          targetEnd = {
+            x: 350 + Math.random() * 100,
+            y: 505 + Math.random() * 112,
+          };
+        }
+
+        const progress = Math.max(0, Math.min(1, (now - targetTransitionStart) / targetTransitionDuration));
+        const eased = progress * progress * (3 - 2 * progress);
+        const position = {
+          x: targetStart.x + (targetEnd.x - targetStart.x) * eased,
+          y: targetStart.y + (targetEnd.y - targetStart.y) * eased,
+        };
+        const elapsed = now - lastTargetSample.time;
+        if (elapsed > 0) {
+          const deltaX = position.x - lastTargetSample.x;
+          const deltaY = position.y - lastTargetSample.y;
+          const speed = Math.hypot(deltaX, deltaY) / elapsed * 1000;
+          if (speed > 8) {
+            targetWindAngle = Math.atan2(deltaY, deltaX);
+            targetWindStrength = Math.min(1, Math.max(0.35, speed / 180));
+          }
+          lastTargetSample = { ...position, time: now };
+        }
+        return position;
+      }
+
+      function startWindAnimation() {
+        if (windAnimationFrame !== null) {
+          return;
+        }
+
+        const animateWind = (now) => {
+          if (!gameStarted) {
+            windAnimationFrame = null;
+            return;
+          }
+
+          if (throwChargePhase !== "charging" && now >= nextIdleWindShift) {
+            idleWindAngle += (Math.random() - 0.5) * Math.PI * 1.35;
+            nextIdleWindShift = now + 1800 + Math.random() * 2600;
+          }
+          const desiredAngle = throwChargePhase === "charging" ? targetWindAngle : idleWindAngle;
+          const angleDifference = Math.atan2(
+            Math.sin(desiredAngle - windAngle),
+            Math.cos(desiredAngle - windAngle),
+          );
+          const elapsed = lastTargetSample.time ? Math.max(0, now - lastWindFrameTime) : 16;
+          const turnRate = throwChargePhase === "charging" ? 0.008 : 0.003;
+          windAngle += angleDifference * Math.min(1, elapsed * turnRate);
+          lastWindFrameTime = now;
+          drawWindFlag(now);
+          windAnimationFrame = requestAnimationFrame(animateWind);
+        };
+
+        lastWindFrameTime = performance.now();
+        nextIdleWindShift = lastWindFrameTime + 1500;
+        windAnimationFrame = requestAnimationFrame(animateWind);
+      }
+
+      function drawWindFlag(now) {
+        const flagContext = windFlagContext;
+        const poleX = 132;
+        const poleTop = 482;
+        const poleBottom = 664;
+        const anchorX = poleX + 4;
+        const anchorY = poleTop + 17;
+        const flagLength = 118;
+        const flagHeight = 62;
+        const directionX = Math.cos(windAngle);
+        const directionY = Math.sin(windAngle);
+        const normalX = -directionY;
+        const normalY = directionX;
+        const phase = now * 0.006;
+        const flutterStrength = throwChargePhase === "charging" ? targetWindStrength : 0.58;
+        const columns = 12;
+        const rows = 8;
+        const points = [];
+
+        flagContext.clearRect(0, 0, windFlagCanvas.width, windFlagCanvas.height);
+        flagContext.save();
+        flagContext.lineCap = "round";
+        flagContext.lineJoin = "round";
+
+        flagContext.fillStyle = "#10251c55";
+        flagContext.beginPath();
+        flagContext.ellipse(poleX + 10, poleBottom + 2, 20, 6, 0, 0, Math.PI * 2);
+        flagContext.fill();
+
+        const poleGradient = flagContext.createLinearGradient(poleX - 5, 0, poleX + 6, 0);
+        poleGradient.addColorStop(0, "#29352e");
+        poleGradient.addColorStop(0.28, "#f1e2b7");
+        poleGradient.addColorStop(0.56, "#b2a27c");
+        poleGradient.addColorStop(1, "#39453b");
+        flagContext.strokeStyle = poleGradient;
+        flagContext.lineWidth = 8;
+        flagContext.beginPath();
+        flagContext.moveTo(poleX, poleBottom);
+        flagContext.lineTo(poleX, poleTop);
+        flagContext.stroke();
+        flagContext.strokeStyle = "#fff4d288";
+        flagContext.lineWidth = 1.5;
+        flagContext.beginPath();
+        flagContext.moveTo(poleX - 1.5, poleBottom - 2);
+        flagContext.lineTo(poleX - 1.5, poleTop + 2);
+        flagContext.stroke();
+        flagContext.fillStyle = "#f4d27a";
+        flagContext.beginPath();
+        flagContext.arc(poleX, poleTop - 2, 5, 0, Math.PI * 2);
+        flagContext.fill();
+
+        for (let column = 0; column <= columns; column += 1) {
+          const along = column / columns;
+          const taper = 1 - along * 0.82;
+          const wave = (
+            Math.sin(phase - along * 9) * 0.72
+            + Math.sin(phase * 1.65 - along * 15) * 0.28
+          ) * (2 + along * 10) * flutterStrength;
+          points[column] = [];
+          for (let row = 0; row <= rows; row += 1) {
+            const across = row / rows * 2 - 1;
+            const flutter = wave * (0.25 + (across + 1) * 0.18) * (1 - along);
+            points[column][row] = {
+              x: anchorX + directionX * along * flagLength
+                + normalX * (across * flagHeight * 0.5 * taper + flutter),
+              y: anchorY + directionY * along * flagLength
+                + normalY * (across * flagHeight * 0.5 * taper + flutter),
+            };
+          }
+        }
+
+        for (let column = 0; column < columns; column += 1) {
+          const fold = Math.sin(phase - (column / columns) * 9);
+          const light = Math.max(0, Math.min(1, 0.5 + fold * 0.25 + (1 - column / columns) * 0.15));
+          const red = Math.round(88 + light * 142);
+          const green = Math.round(18 + light * 44);
+          const blue = Math.round(22 + light * 36);
+          flagContext.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+          flagContext.beginPath();
+          flagContext.moveTo(points[column][0].x, points[column][0].y);
+          flagContext.lineTo(points[column + 1][0].x, points[column + 1][0].y);
+          flagContext.lineTo(points[column + 1][rows].x, points[column + 1][rows].y);
+          flagContext.lineTo(points[column][rows].x, points[column][rows].y);
+          flagContext.closePath();
+          flagContext.fill();
+        }
+
+        flagContext.strokeStyle = "#ffdda18c";
+        flagContext.lineWidth = 2;
+        flagContext.beginPath();
+        flagContext.moveTo(points[0][0].x, points[0][0].y);
+        for (let column = 1; column <= columns; column += 1) {
+          flagContext.lineTo(points[column][0].x, points[column][0].y);
+        }
+        for (let row = 0; row <= rows; row += 1) {
+          flagContext.lineTo(points[columns][row].x, points[columns][row].y);
+        }
+        for (let column = columns; column >= 0; column -= 1) {
+          flagContext.lineTo(points[column][rows].x, points[column][rows].y);
+        }
+        flagContext.lineTo(points[0][0].x, points[0][0].y);
+        flagContext.stroke();
+
+        flagContext.strokeStyle = "#5e1825aa";
+        flagContext.lineWidth = 3;
+        flagContext.beginPath();
+        flagContext.moveTo(anchorX, anchorY - flagHeight * 0.5);
+        flagContext.lineTo(anchorX, anchorY + flagHeight * 0.5);
+        flagContext.stroke();
+        flagContext.restore();
+      }
+
+      function getAimPoint(now) {
+        const elapsed = Math.max(0, (now - chargeStartTime) / 1000);
+        const speed = 1 + Math.min(elapsed, 6) * 0.62;
+        const phase = elapsed * speed;
+        return {
+          x: centerX + Math.sin(phase * 1.7 + 0.8) * 35 + Math.sin(phase * 3.1) * 14,
+          y: 562 + Math.cos(phase * 1.3 + 0.3) * 32 + Math.sin(phase * 2.4) * 12,
+        };
+      }
+
+      function drawTarget(x, y, radius, marks = []) {
+        context.save();
+        context.translate(x, y);
+        context.fillStyle = "#17342688";
+        context.beginPath();
+        context.ellipse(0, radius + 24, radius * 0.72, radius * 0.12, 0, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "#ded8c4";
+        context.fillRect(-radius * 0.13, radius * 0.65, radius * 0.26, 34);
+        context.fillStyle = "#664c32";
+        context.fillRect(-radius * 0.3, radius * 0.65 + 31, radius * 0.6, 5);
+        drawTargetRings(context, radius, marks);
+        context.restore();
+      }
+
+      function drawTargetRings(targetContext, radius, marks) {
+        const ringColors = [
+          "#f3f0e2", "#f3f0e2",
+          "#151b1b", "#151b1b",
+          "#4a80bb", "#4a80bb",
+          "#d64a40", "#d64a40",
+          "#e4bd4c", "#e4bd4c",
+        ];
+        for (let ringIndex = 0; ringIndex < ringColors.length; ringIndex += 1) {
+          targetContext.fillStyle = ringColors[ringIndex];
+          targetContext.beginPath();
+          targetContext.arc(0, 0, radius * (ringColors.length - ringIndex) / ringColors.length, 0, Math.PI * 2);
+          targetContext.fill();
+        }
+        targetContext.fillStyle = "#c33d32";
+        targetContext.beginPath();
+        targetContext.arc(0, 0, radius * 0.07, 0, Math.PI * 2);
+        targetContext.fill();
+        for (const mark of marks) {
+          const markX = mark.x * radius;
+          const markY = mark.y * radius;
+          targetContext.fillStyle = "#15110f";
+          targetContext.beginPath();
+          targetContext.arc(markX, markY, Math.max(1.5, radius * 0.035), 0, Math.PI * 2);
+          targetContext.fill();
+          targetContext.fillStyle = "#fff8d977";
+          targetContext.beginPath();
+          targetContext.arc(markX - radius * 0.012, markY - radius * 0.012, Math.max(0.5, radius * 0.01), 0, Math.PI * 2);
+          targetContext.fill();
+        }
+      }
+
+      function drawTargetDetail() {
+        const size = targetDetailCanvas.width;
+        const radius = size * 0.39;
+        targetDetailContext.clearRect(0, 0, size, size);
+        targetDetailContext.fillStyle = "#ded8c4";
+        targetDetailContext.fillRect(0, 0, size, size);
+        targetDetailContext.save();
+        targetDetailContext.translate(size / 2, size / 2);
+        targetDetailContext.fillStyle = "#7a6347";
+        targetDetailContext.beginPath();
+        targetDetailContext.arc(0, 0, radius + 5, 0, Math.PI * 2);
+        targetDetailContext.fill();
+        drawTargetRings(targetDetailContext, radius, targetMarks);
+        targetDetailContext.restore();
+      }
+
+      function drawFlyingArrow(arrow) {
+        const progress = arrow.progress;
+        const tipX = arrow.startX + (arrow.x - arrow.startX) * progress;
+        const tipY = arrow.startY + (arrow.y - arrow.startY) * progress;
+        const directionX = arrow.x - arrow.startX;
+        const directionY = arrow.y - arrow.startY;
+        const distance = Math.hypot(directionX, directionY) || 1;
+        const length = 48 * (1 - progress) + 2.5;
+        const tailX = tipX - directionX / distance * length;
+        const tailY = tipY - directionY / distance * length;
+        const width = Math.max(0.7, length * 0.075);
+
+        context.save();
+        context.lineCap = "round";
+        context.strokeStyle = "#201911";
+        context.lineWidth = width + 1;
+        context.beginPath();
+        context.moveTo(tailX, tailY);
+        context.lineTo(tipX, tipY);
+        context.stroke();
+        context.strokeStyle = "#e9d8ae";
+        context.lineWidth = width * 0.48;
+        context.beginPath();
+        context.moveTo(tailX, tailY);
+        context.lineTo(tipX - directionX / distance * width, tipY - directionY / distance * width);
+        context.stroke();
+        context.restore();
+      }
+
+      function freezeTargetPosition(now = performance.now()) {
+        frozenTargetPosition = { ...getTargetPosition(now) };
+        targetStart = frozenTargetPosition;
+        targetEnd = frozenTargetPosition;
+        targetMotionActive = false;
+        return frozenTargetPosition;
+      }
+
+      function recordTargetMark(arrowPoint, target) {
+        const offsetX = arrowPoint.x - target.x;
+        const offsetY = arrowPoint.y - target.y;
+        if (Math.hypot(offsetX, offsetY) <= 70) {
+          targetMarks.push({ x: offsetX / 70, y: offsetY / 70 });
+          return true;
+        }
+        return false;
+      }
+
+      function animateTargetDetailImpact() {
+        targetDetail.classList.remove("is-impact");
+        requestAnimationFrame(() => targetDetail.classList.add("is-impact"));
+      }
+
+      function drawRoomBackdrop() {
+        context.save();
+        context.scale(1, 0.3);
+        const wall = context.createLinearGradient(0, 0, 0, 270);
+        wall.addColorStop(0, "#202b32");
+        wall.addColorStop(0.55, "#293238");
+        wall.addColorStop(1, "#493d37");
+        context.fillStyle = wall;
+        context.fillRect(0, 0, width, 270);
+
+        context.fillStyle = "#0b1118";
+        context.fillRect(0, 0, width, 32);
+        context.fillStyle = "#d6b77c28";
+        context.fillRect(0, 244, width, 5);
+        context.fillStyle = "#ffffff0b";
+        for (const x of [120, 280, 520, 680]) {
+          context.beginPath();
+          context.moveTo(x - 34, 0);
+          context.lineTo(x + 7, 0);
+          context.lineTo(x + 116, 244);
+          context.lineTo(x + 68, 244);
+          context.closePath();
+          context.fill();
+        }
+
+        for (const x of [92, 267, 533, 708]) {
+          const glow = context.createRadialGradient(x, 213, 2, x, 213, 92);
+          glow.addColorStop(0, "#f6d79a2b");
+          glow.addColorStop(1, "#f6d79a00");
+          context.fillStyle = glow;
+          context.fillRect(x - 92, 121, 184, 145);
+          context.fillStyle = "#f7e0b0";
+          context.beginPath();
+          context.ellipse(x, 212, 25, 7, 0, 0, Math.PI * 2);
+          context.fill();
+        }
+
+        context.strokeStyle = "#d7c6a328";
+        context.lineWidth = 3;
+        context.beginPath();
+        context.moveTo(0, 251);
+        context.lineTo(width, 251);
+        context.stroke();
+        context.textAlign = "start";
+        context.restore();
+      }
+
+      function fillPolygon(points, fillStyle) {
+        context.fillStyle = fillStyle;
+        context.beginPath();
+        context.moveTo(points[0][0], points[0][1]);
+        for (let index = 1; index < points.length; index += 1) {
+          context.lineTo(points[index][0], points[index][1]);
+        }
+        context.closePath();
+        context.fill();
+      }
+
+      function drawAlleyLane(nearCenter, farCenter, nearHalf, farHalf, topY, bottomY, woodColor) {
+        const gutter = 15;
+        fillPolygon([
+          [farCenter - farHalf - gutter, topY],
+          [farCenter + farHalf + gutter, topY],
+          [nearCenter + nearHalf + gutter, bottomY],
+          [nearCenter - nearHalf - gutter, bottomY],
+        ], "#171a20");
+        fillPolygon([
+          [farCenter - farHalf, topY],
+          [farCenter + farHalf, topY],
+          [nearCenter + nearHalf, bottomY],
+          [nearCenter - nearHalf, bottomY],
+        ], woodColor);
+
+        if (nearCenter !== centerX) {
+          context.strokeStyle = "#ffffff18";
+          context.lineWidth = 2;
+          context.beginPath();
+          context.moveTo(farCenter, topY);
+          context.lineTo(nearCenter, bottomY);
+          context.stroke();
+          return;
+        }
+
+        const wood = context.createLinearGradient(0, topY, 0, bottomY);
+        wood.addColorStop(0, "#f3d496");
+        wood.addColorStop(0.52, "#dcae6c");
+        wood.addColorStop(1, "#bd854a");
+        fillPolygon([
+          [farCenter - farHalf, topY],
+          [farCenter + farHalf, topY],
+          [nearCenter + nearHalf, bottomY],
+          [nearCenter - nearHalf, bottomY],
+        ], wood);
+
+        for (let board = 1; board < 19; board += 1) {
+          const fraction = board / 19 * 2 - 1;
+          context.strokeStyle = board % 2 === 0 ? "#fff6df20" : "#623a1a1c";
+          context.lineWidth = board % 3 === 0 ? 2 : 1;
+          context.beginPath();
+          context.moveTo(farCenter + fraction * farHalf, topY);
+          context.lineTo(nearCenter + fraction * nearHalf, bottomY);
+          context.stroke();
+        }
+
+        for (const markerY of [575, 690]) {
+          const ratio = (markerY - topY) / (bottomY - topY);
+          const half = farHalf + (nearHalf - farHalf) * ratio;
+          context.strokeStyle = "#75502d35";
+          context.lineWidth = 2;
+          context.beginPath();
+          context.moveTo(centerX - half * 0.88, markerY);
+          context.lineTo(centerX + half * 0.88, markerY);
+          context.stroke();
+        }
+
+        const arrowY = 660;
+        const arrowRatio = (arrowY - topY) / (bottomY - topY);
+        const arrowHalf = farHalf + (nearHalf - farHalf) * arrowRatio;
+        for (let arrow = -3; arrow <= 3; arrow += 1) {
+          const x = centerX + arrow * arrowHalf * 0.19;
+          context.fillStyle = "#68451f83";
+          context.beginPath();
+          context.moveTo(x, arrowY);
+          context.lineTo(x - 7, arrowY + 15);
+          context.lineTo(x + 7, arrowY + 15);
+          context.closePath();
+          context.fill();
+        }
+
+        context.strokeStyle = "#fff1ce99";
+        context.lineWidth = 3;
+        context.beginPath();
+        context.moveTo(centerX - nearHalf * 0.94, 858);
+        context.lineTo(centerX + nearHalf * 0.94, 858);
+        context.stroke();
+        context.strokeStyle = "#61391f";
+        context.lineWidth = 4;
+        context.beginPath();
+        context.moveTo(farCenter - farHalf, topY);
+        context.lineTo(nearCenter - nearHalf, bottomY);
+        context.moveTo(farCenter + farHalf, topY);
+        context.lineTo(nearCenter + nearHalf, bottomY);
+        context.stroke();
+      }
+
+      function drawPin(pin) {
+        const scale = (0.78 + pin.row * 0.18) * 0.68;
+        const radiusX = 18 * scale;
+        const radiusY = 28 * scale;
+        const flightTime = pin.flight?.elapsed ?? 0;
+        const x = pin.x + (pin.flight ? pin.flight.velocityX * flightTime : 0);
+        const y = pin.y + (pin.flight
+          ? pin.flight.velocityY * flightTime + 0.5 * pin.flight.gravity * flightTime ** 2
+          : 0);
+
+        context.save();
+        context.translate(x, y);
+        if (pin.flight) {
+          context.rotate(pin.flight.spin * flightTime);
+        }
+
+        context.fillStyle = "#593b2580";
+        context.beginPath();
+        context.ellipse(2, 10 + flightTime * 28, radiusX + 6, radiusY + 7, 0, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = pin.flight ? "#fffdf1" : pin.fallen ? "#c8c0ab" : "#fffdf1";
+        context.beginPath();
+        context.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = "#c9453c";
+        context.fillRect(-radiusX * 0.78, -radiusY * 0.08, radiusX * 1.56, 6 * scale);
+        context.fillRect(-radiusX * 0.68, radiusY * 0.12, radiusX * 1.36, 5 * scale);
+
+        context.restore();
+      }
+
+      function getHeldBallPosition() {
+        const elapsed = throwChargePhase === "charging"
+          ? Math.max(0, performance.now() - chargeStartTime)
+          : 0;
+        const progress = Math.min(1, elapsed / 550);
+        const swing = progress * progress * (3 - 2 * progress);
+        return {
+          x: centerX + swing * 24,
+          y: 842 + swing * 32,
+        };
+      }
+
+      function drawBowler(heldBall) {
+        const bodyX = centerX - 55;
+        context.save();
+        context.translate(heldBall.x, heldBall.y);
+        context.scale(1.2, 1.2);
+        context.translate(-heldBall.x, -heldBall.y);
+        context.fillStyle = "#05090cbd";
+        context.strokeStyle = "#05090cbd";
+        context.lineCap = "round";
+        context.lineJoin = "round";
+
+        context.lineWidth = 19;
+        context.beginPath();
+        context.moveTo(bodyX + 16, 850);
+        context.lineTo(bodyX + 39, 846);
+        context.lineTo(heldBall.x - 12, heldBall.y);
+        context.stroke();
+        context.lineWidth = 16;
+        context.beginPath();
+        context.moveTo(bodyX - 17, 850);
+        context.lineTo(bodyX - 38, 879);
+        context.stroke();
+
+        fillPolygon([
+          [bodyX - 26, 890],
+          [bodyX - 3, 894],
+          [bodyX - 20, 970],
+          [bodyX - 48, 970],
+        ], "#05090cbd");
+        fillPolygon([
+          [bodyX + 1, 892],
+          [bodyX + 24, 889],
+          [bodyX + 35, 970],
+          [bodyX + 8, 970],
+        ], "#05090cbd");
+
+        context.beginPath();
+        context.moveTo(bodyX - 31, 840);
+        context.quadraticCurveTo(bodyX - 18, 834, bodyX - 4, 840);
+        context.lineTo(bodyX + 15, 897);
+        context.quadraticCurveTo(bodyX - 2, 909, bodyX - 27, 901);
+        context.closePath();
+        context.fill();
+
+        context.beginPath();
+        context.ellipse(bodyX - 12, 813, 21, 25, 0, 0, Math.PI * 2);
+        context.fill();
+        context.beginPath();
+        context.arc(heldBall.x - 12, heldBall.y, 8, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+      }
+
+      function drawBall(x, y) {
+        const depth = Math.max(0, Math.min(1, (y - laneTopY) / (842 - laneTopY)));
+        const radius = 12 + depth * 16;
+        const shine = context.createRadialGradient(
+          x - radius * 0.35,
+          y - radius * 0.4,
+          2,
+          x,
+          y,
+          radius,
+        );
+        shine.addColorStop(0, "#d8eff0");
+        shine.addColorStop(0.25, "#5d9fa0");
+        shine.addColorStop(1, "#1c5158");
+        context.fillStyle = "#38281a66";
+        context.beginPath();
+        context.ellipse(x + 3, y + radius * 0.8, radius * 1.1, radius * 0.38, 0, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = shine;
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = "#d8eff0aa";
+        for (const [dx, dy] of [[-5, -4], [4, -5], [0, 5]]) {
+          context.beginPath();
+          context.arc(x + dx * radius / 28, y + dy * radius / 28, Math.max(1.5, radius * 0.07), 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+
+      function getAimTargetOffset() {
+        if (throwChargePhase === "charging") {
+          const elapsed = Math.max(0, (performance.now() - chargeStartTime) / 1000);
+          const rampDuration = 2.5;
+          const initialSpeed = 1.5;
+          const acceleration = 1.6;
+          const maxSpeed = initialSpeed + acceleration * rampDuration;
+          const rampElapsed = Math.min(elapsed, rampDuration);
+          const rampPhase = initialSpeed * rampElapsed + 0.5 * acceleration * rampElapsed ** 2;
+          const phase = rampPhase + Math.max(0, elapsed - rampDuration) * maxSpeed;
+          return Math.sin(phase) * 65;
+        }
+
+        return 0;
+      }
+
+      function getLaneHalfWidth(y) {
+        const laneProgress = Math.max(0, Math.min(1, (y - laneTopY) / (930 - laneTopY)));
+        return 82 + laneProgress * (292 - 82);
+      }
+
+      function drawAimLine(aimOffset) {
+        const targetX = centerX + aimOffset;
+        const arrowColor = "#f4d27a";
+        const aimTargetY = laneTopY;
+        const heldBall = bowlerReleasePosition ?? getHeldBallPosition();
+        context.strokeStyle = `${arrowColor}cc`;
+        context.lineWidth = 4;
+        context.setLineDash([9, 12]);
+        context.beginPath();
+        context.moveTo(heldBall.x, heldBall.y - 18);
+        context.lineTo(targetX, aimTargetY);
+        context.stroke();
+        context.setLineDash([]);
+        context.fillStyle = arrowColor;
+        context.beginPath();
+        context.moveTo(targetX, aimTargetY - 11);
+        context.lineTo(targetX - 10, aimTargetY + 7);
+        context.lineTo(targetX + 10, aimTargetY + 7);
+        context.closePath();
+        context.fill();
+      }
+
+      function updateControls() {
+        powerMeter.setAttribute("aria-valuenow", String(Math.round(chargePower)));
+        powerMeterFill.style.width = `${chargePower}%`;
+        syncThrowButtonLabel();
+        drawLane();
+      }
+
+      function disableSound(error) {
+        soundEnabled = false;
+        console.error("Không thể phát hiệu ứng âm thanh:", error);
+      }
+
+      function getAudioContext() {
+        if (!soundEnabled) {
+          return null;
+        }
+
+        const AudioContextConstructor = window.AudioContext ?? window.webkitAudioContext;
+        if (!AudioContextConstructor) {
+          soundEnabled = false;
+          console.warn("Trình duyệt này không hỗ trợ Web Audio API.");
+          return null;
+        }
+
+        try {
+          if (!audioContext) {
+            audioContext = new AudioContextConstructor();
+            masterGain = audioContext.createGain();
+            masterGain.gain.value = 0.5;
+
+            const compressor = audioContext.createDynamicsCompressor();
+            compressor.threshold.value = -18;
+            compressor.knee.value = 20;
+            compressor.ratio.value = 3;
+            compressor.attack.value = 0.004;
+            compressor.release.value = 0.24;
+            compressor.connect(audioContext.destination);
+            masterGain.connect(compressor);
+
+            const reverb = audioContext.createConvolver();
+            const impulseDuration = 1.4;
+            const impulse = audioContext.createBuffer(
+              2,
+              Math.ceil(audioContext.sampleRate * impulseDuration),
+              audioContext.sampleRate,
+            );
+            for (let channel = 0; channel < impulse.numberOfChannels; channel += 1) {
+              const samples = impulse.getChannelData(channel);
+              for (let index = 0; index < samples.length; index += 1) {
+                const decay = (1 - index / samples.length) ** 2.8;
+                samples[index] = (Math.random() * 2 - 1) * decay;
+              }
+            }
+            reverb.buffer = impulse;
+            const roomGain = audioContext.createGain();
+            roomGain.gain.value = 0.19;
+            masterGain.connect(reverb);
+            reverb.connect(roomGain);
+            roomGain.connect(compressor);
+          }
+
+          if (audioContext.state === "suspended") {
+            audioContext.resume().catch(disableSound);
+          }
+          return audioContext;
+        } catch (error) {
+          disableSound(error);
+          return null;
+        }
+      }
+
+      function playTone(frequency, endFrequency, startAt, duration, volume, type = "sine") {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const oscillator = audio.createOscillator();
+        const gain = audio.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, startAt);
+        oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), startAt + duration);
+        gain.gain.setValueAtTime(0.0001, startAt);
+        gain.gain.linearRampToValueAtTime(volume, startAt + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+        oscillator.connect(gain);
+        gain.connect(masterGain);
+        oscillator.start(startAt);
+        oscillator.stop(startAt + duration);
+      }
+
+      function playNoise(duration, startFrequency, endFrequency, volume, scheduledAt) {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const startAt = Math.max(audio.currentTime, scheduledAt ?? audio.currentTime);
+        const sampleCount = Math.ceil(audio.sampleRate * duration);
+        const buffer = audio.createBuffer(1, sampleCount, audio.sampleRate);
+        const samples = buffer.getChannelData(0);
+        for (let index = 0; index < sampleCount; index += 1) {
+          samples[index] = Math.random() * 2 - 1;
+        }
+
+        const source = audio.createBufferSource();
+        const filter = audio.createBiquadFilter();
+        const gain = audio.createGain();
+        source.buffer = buffer;
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(startFrequency, startAt);
+        filter.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), startAt + duration);
+        filter.Q.value = 0.7;
+        gain.gain.setValueAtTime(0.0001, startAt);
+        gain.gain.linearRampToValueAtTime(volume, startAt + 0.035);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(masterGain);
+        source.start(startAt);
+        source.stop(startAt + duration);
+      }
+
+      function playArrowLaunchSound() {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const startAt = audio.currentTime;
+        playNoise(0.32, 2600, 380, 0.09, startAt);
+        playTone(520, 190, startAt, 0.16, 0.045, "triangle");
+      }
+
+      function playArrowImpactSound() {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const startAt = audio.currentTime;
+        playNoise(0.13, 520, 95, 0.2, startAt);
+        playNoise(0.055, 1900, 620, 0.055, startAt);
+        playTone(145, 52, startAt, 0.19, 0.19, "triangle");
+      }
+
+      function playRollingSound(duration, scheduledAt, includeThump = false) {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const startAt = Math.max(audio.currentTime, scheduledAt ?? audio.currentTime);
+        if (includeThump) {
+          playNoise(0.11, 260, 70, 0.12, startAt);
+          playTone(105, 45, startAt, 0.16, 0.12, "triangle");
+        }
+        playNoise(duration, 420, 95, 0.08, startAt);
+        playNoise(duration, 1500, 480, 0.035, startAt);
+        playTone(86, 42, startAt, duration, 0.17);
+        for (let offset = 0.12; offset < duration; offset += 0.24) {
+          playNoise(0.035, 1050, 360, 0.018, startAt + offset);
+        }
+      }
+
+      function playPinCrash(pinCount) {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const startAt = audio.currentTime;
+        playNoise(pinCount > 0 ? 0.72 : 0.38, pinCount > 0 ? 1750 : 520, 95, pinCount > 0 ? 0.24 : 0.12, startAt);
+        playTone(pinCount > 0 ? 112 : 76, 35, startAt, 0.52, 0.24);
+
+        for (let index = 0; index < Math.min(pinCount * 2, 12); index += 1) {
+          const offset = 0.035 + index * 0.045 + Math.random() * 0.025;
+          const clackFrequency = 1800 + Math.random() * 1500;
+          playNoise(0.085 + Math.random() * 0.06, clackFrequency, 350, 0.075, startAt + offset);
+          playTone(280 + Math.random() * 260, 70 + Math.random() * 80, startAt + offset, 0.17, 0.035, "triangle");
+        }
+      }
+
+      function calculateKnockdown(aimOffset, power, endY, startX, startY) {
+        const hit = new Set();
+        const hitRadius = 12 + power * 0.055;
+        const targetX = centerX + aimOffset;
+
+        for (let index = 0; index < pins.length; index += 1) {
+          const pin = pins[index];
+          if (pin.fallen || pin.y < endY) {
+            continue;
+          }
+
+          const pathRatio = (startY - pin.y) / (startY - laneTopY);
+          const ballX = startX + (targetX - startX) * pathRatio;
+          if (Math.abs(ballX - centerX) > getLaneHalfWidth(pin.y) - 12) {
+            continue;
+          }
+          const pinRadius = 14 + pin.row * 2;
+          if (Math.abs(pin.x - ballX) < hitRadius + pinRadius) {
+            hit.add(index);
+          }
+        }
+
+        for (let row = 0; row < 3; row += 1) {
+          for (let index = 0; index < pins.length; index += 1) {
+            if (!hit.has(index) || pins[index].row !== row) {
+              continue;
+            }
+
+            for (let nextIndex = 0; nextIndex < pins.length; nextIndex += 1) {
+              const nextPin = pins[nextIndex];
+              if (!nextPin.fallen && nextPin.row === row + 1 && Math.abs(nextPin.x - pins[index].x) <= 60) {
+                const chainChance = 0.12 + power * 0.002;
+                if (Math.random() < chainChance) {
+                  hit.add(nextIndex);
+                }
+              }
+            }
+          }
+        }
+
+        return hit;
+      }
+
+      function getRollEndpoint(aimOffset, power, startX, startY) {
+        const endY = 190 - (power - 50) * 2.2;
+        let lastOnLaneY = startY;
+        const targetX = centerX + aimOffset;
+
+        for (let y = startY; y >= endY; y -= 4) {
+          const pathRatio = (startY - y) / (startY - laneTopY);
+          const ballX = startX + (targetX - startX) * pathRatio;
+          if (Math.abs(ballX - centerX) > getLaneHalfWidth(y) - 14) {
+            break;
+          }
+          lastOnLaneY = y;
+        }
+
+        const finalY = lastOnLaneY === startY ? endY : Math.max(endY, lastOnLaneY);
+        const pathRatio = (startY - finalY) / (startY - laneTopY);
+        return {
+          x: startX + (targetX - startX) * pathRatio,
+          y: finalY,
+        };
+      }
+
+      function updateChargeProgress() {
+        if (throwChargePhase !== "charging") {
+          chargeAnimationFrame = null;
+          return;
+        }
+
+        const elapsed = performance.now() - chargeStartTime;
+        chargePower = Math.min(100, 50 + elapsed / 900 * 50);
+        updateControls();
+        chargeAnimationFrame = requestAnimationFrame(updateChargeProgress);
+      }
+
+      function startHoldingThrow() {
+        if (!gameStarted || gameFinished || shotTaken || pendingArrow || ball || throwChargePhase === "charging") {
+          return;
+        }
+
+        if (gameMode === "solo" && currentArrowIndex >= 10) {
+          return;
+        }
+
+        getAudioContext();
+        if (!game.classList.contains("is-scoreboard-collapsed")) {
+          rollsSinceScoreboardCollapsed = 0;
+          setScoreboardCollapsed(true);
+        }
+        throwChargePhase = "charging";
+        chargePower = 50;
+        chargeStartTime = performance.now();
+        targetMotionActive = true;
+        targetZoomed = true;
+        targetTransitionStart = chargeStartTime;
+        targetTransitionDuration = 900;
+        targetStart = { ...frozenTargetPosition };
+        lastTargetSample = { ...frozenTargetPosition, time: chargeStartTime };
+        targetEnd = {
+          x: 350 + Math.random() * 100,
+          y: 505 + Math.random() * 112,
+        };
+        powerField.hidden = false;
+        if (gameMode === "solo") {
+          powerField.hidden = true;
+        }
+        updateControls();
+        chargeAnimationFrame = requestAnimationFrame(updateChargeProgress);
+      }
+
+      function releaseHoldingThrow() {
+        if (throwChargePhase !== "charging") {
+          return;
+        }
+
+        const releasedAt = performance.now();
+        const aimPoint = getAimPoint(releasedAt);
+        freezeTargetPosition(releasedAt);
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+
+        chargePower = Math.max(50, Math.min(100, Math.round(chargePower)));
+        throwChargePhase = "idle";
+        powerField.hidden = true;
+        if (gameMode === "solo") {
+          fireSoloArrow(aimPoint);
+          return;
+        }
+        fireOnlineArrow(aimPoint);
+      }
+
+      function cancelHoldingThrow() {
+        if (throwChargePhase !== "charging") {
+          return;
+        }
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+        throwChargePhase = "idle";
+        chargePower = 50;
+        powerField.hidden = true;
+        freezeTargetPosition();
+        targetZoomed = false;
+        if (rollsSinceScoreboardCollapsed === 0) {
+          setScoreboardCollapsed(false);
+        }
+        updateControls();
+      }
+
+      function getArrowScore(aimPoint, target) {
+        const distance = Math.hypot(aimPoint.x - target.x, aimPoint.y - target.y);
+        const targetRadius = 70;
+        if (distance > targetRadius) {
+          return 0;
+        }
+        return Math.min(10, Math.max(1, 11 - Math.ceil(distance / targetRadius * 10)));
+      }
+
+      function animateSoloArrow(aimPoint, onImpact) {
+        const startedAt = performance.now();
+        const flightDuration = ARCHERY_DISTANCE_METERS / ARROW_SPEED_METERS_PER_SECOND * 1000;
+        firedArrow = {
+          startX: centerX,
+          startY: 1090,
+          x: aimPoint.x,
+          y: aimPoint.y,
+          progress: 0,
+        };
+        playArrowLaunchSound();
+
+        function animate(now) {
+          firedArrow.progress = Math.min(1, (now - startedAt) / flightDuration);
+          drawLane();
+          if (firedArrow.progress < 1) {
+            animationFrame = requestAnimationFrame(animate);
+            return;
+          }
+          playArrowImpactSound();
+          firedArrow = null;
+          animationFrame = null;
+          onImpact(aimPoint, getTargetPosition(now));
+        }
+
+        animationFrame = requestAnimationFrame(animate);
+      }
+
+      function fireSoloArrow(aimPoint) {
+        shotTaken = true;
+        throwButton.disabled = true;
+        powerField.hidden = true;
+        animateSoloArrow(aimPoint, (arrowPoint, target) => {
+          if (recordTargetMark(arrowPoint, target)) {
+            animateTargetDetailImpact();
+          }
+          const score = getArrowScore(arrowPoint, target);
+          const player = gamePlayers[0];
+          player.arrows[currentArrowIndex] = score;
+          player.score += score;
+          freezeTargetPosition();
+          targetZoomed = false;
+          setScoreboardCollapsed(false);
+          drawLane();
+          gameStatus.textContent = score === 10
+            ? "Hồng tâm! Bạn được 10 điểm."
+            : `Mũi tên được ${score} điểm. Cung thủ máy chuẩn bị bắn…`;
+          renderRoomBoard();
+          npcTimeout = window.setTimeout(playNpcTurn, 850);
+        });
+      }
+
+      function fireOnlineArrow(aimPoint) {
+        shotTaken = true;
+        throwButton.disabled = true;
+        powerField.hidden = true;
+        animateSoloArrow(aimPoint, (arrowPoint, target) => {
+          if (recordTargetMark(arrowPoint, target)) {
+            animateTargetDetailImpact();
+          }
+          drawLane();
+          const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+          if (!ownPlayer) {
+            gameStatus.textContent = "Không tìm thấy người chơi trong phòng.";
+            throwButton.disabled = false;
+            return;
+          }
+          pendingArrow = {
+            arrowId: window.crypto?.randomUUID?.()
+              ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            arrowIndex: ownPlayer.arrows.length,
+            score: getArrowScore(arrowPoint, target),
+          };
+          setScoreboardCollapsed(false);
+          gameStatus.textContent = `Bạn được ${pendingArrow.score} điểm · đang lưu kết quả…`;
+          renderRoomBoard();
+          submitPendingArrow();
+        });
+      }
+
+      async function submitPendingArrow() {
+        if (!pendingArrow) {
+          return;
+        }
+
+        throwButton.disabled = true;
+        throwButton.textContent = "Đang lưu…";
+        try {
+          const submittedArrow = pendingArrow;
+          const response = await emitRoomCommand("archery_record_arrow", {
+            roomCode,
+            arrowId: submittedArrow.arrowId,
+            arrowIndex: submittedArrow.arrowIndex,
+            score: submittedArrow.score,
+          });
+          if (pendingArrow?.arrowId !== submittedArrow.arrowId) {
+            return;
+          }
+          pendingArrow = null;
+          applyRoomState(response.room);
+          if (!gameStarted) {
+            return;
+          }
+          const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+          if (!ownPlayer) {
+            throw new Error("Không tìm thấy người chơi trong phòng sau khi đồng bộ.");
+          }
+          currentArrowIndex = ownPlayer ? ownPlayer.arrows.length : 0;
+          gameFinished = currentArrowIndex >= 10;
+          targetMotionActive = false;
+          targetZoomed = false;
+          if (gameFinished) {
+            gameStatus.textContent = `Bạn đã hoàn thành ván · tổng ${ownPlayer.score} điểm`;
+            throwButton.disabled = false;
+            syncThrowButtonLabel();
+          } else {
+            shotTaken = false;
+            throwButton.disabled = false;
+            gameStatus.textContent = `Đã lưu ${submittedArrow.score} điểm · mũi ${currentArrowIndex + 1}/10.`;
+            syncThrowButtonLabel();
+          }
+          renderRoomBoard();
+          drawLane();
+        } catch (error) {
+          gameStatus.textContent = `Chưa đồng bộ được điểm: ${error.message}`;
+          throwButton.disabled = false;
+          throwButton.textContent = "Thử đồng bộ";
+        }
+      }
+
+      function playNpcTurn() {
+        npcTimeout = null;
+        targetMotionActive = true;
+        targetZoomed = true;
+        chargeStartTime = performance.now() - 3200;
+        targetTransitionStart = performance.now();
+        targetTransitionDuration = 260;
+        targetStart = { ...frozenTargetPosition };
+        targetEnd = {
+          x: 350 + Math.random() * 100,
+          y: 505 + Math.random() * 112,
+        };
+        const now = performance.now();
+        const target = freezeTargetPosition(now);
+        const angle = Math.random() * Math.PI * 2;
+        const missDistance = (0.12 + Math.random() * 0.8) * 70;
+        const aimPoint = {
+          x: target.x + Math.cos(angle) * missDistance,
+          y: target.y + Math.sin(angle) * missDistance,
+        };
+        gameStatus.textContent = "Cung thủ máy đang bắn…";
+        animateSoloArrow(aimPoint, (arrow, impactTarget) => {
+          if (recordTargetMark(arrow, impactTarget)) {
+            animateTargetDetailImpact();
+          }
+          const score = getArrowScore(arrow, impactTarget);
+          const npc = gamePlayers[1];
+          npc.arrows[currentArrowIndex] = score;
+          npc.score += score;
+          currentArrowIndex += 1;
+          freezeTargetPosition();
+          targetZoomed = false;
+          if (currentArrowIndex >= 10) {
+            gameFinished = true;
+            for (const player of gamePlayers) {
+              player.history.push(player.score);
+              soloMatchHistoryByPlayer.set(player.id, player.history);
+            }
+            const historySaved = saveSoloMatchHistory();
+            gameStatus.textContent = `Ván kết thúc · ${gamePlayers[0].score}–${npc.score} điểm`;
+            if (!historySaved) {
+              gameStatus.textContent += " · không lưu được lịch sử trên thiết bị";
+            }
+            throwButton.disabled = false;
+            syncThrowButtonLabel();
+          } else {
+            shotTaken = false;
+            throwButton.disabled = false;
+            gameStatus.textContent = `NPC được ${score} điểm · đến lượt mũi ${currentArrowIndex + 1}.`;
+            syncThrowButtonLabel();
+          }
+          setScoreboardCollapsed(false);
+          renderRoomBoard();
+          drawLane();
+        });
+      }
+
+      function shouldResetRackForNextRoll(frame, frameIndex, pinsDown) {
+        const rolls = [...frame.rolls, pinsDown];
+        if (isFrameComplete({ rolls }, frameIndex)) {
+          return true;
+        }
+        if (frameIndex < 9) {
+          return frame.rolls.length === 0 && pinsDown === 10;
+        }
+        return frameIndex === 9 && (
+          (frame.rolls.length === 0 && pinsDown === 10)
+          || (frame.rolls.length === 1 && frame.rolls[0] === 10 && pinsDown === 10)
+          || (frame.rolls.length === 1 && frame.rolls[0] + pinsDown === 10)
+        );
+      }
+
+      async function submitPendingRoll() {
+        if (!pendingRoll) {
+          return;
+        }
+        throwButton.disabled = true;
+        throwButton.textContent = "Đang lưu…";
+        try {
+          const submittedRoll = pendingRoll;
+          const response = await emitRoomCommand("record_roll", {
+            roomCode,
+            rollId: submittedRoll.rollId,
+            frameIndex: submittedRoll.frameIndex,
+            rollIndex: submittedRoll.rollIndex,
+            pinsDown: submittedRoll.pinsDown,
+          });
+          if (pendingRoll?.rollId !== submittedRoll.rollId) {
+            return;
+          }
+          pendingRoll = null;
+          applyRoomState(response.room);
+          if (!gameStarted || !roomCode) {
+            return;
+          }
+          rollsSinceScoreboardCollapsed += 1;
+          if (rollsSinceScoreboardCollapsed >= 2) {
+            setScoreboardCollapsed(false);
+          }
+          const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+          if (!ownPlayer) {
+            return;
+          }
+          currentFrameIndex = getCurrentFrameIndex(ownPlayer);
+          gameFinished = currentFrameIndex < 0;
+          pendingRackReset = submittedRoll.resetRack || currentFrameIndex !== submittedRoll.frameIndex;
+          shotTaken = true;
+          if (gameFinished) {
+            if (ballReturning) {
+              throwButton.textContent = "Bóng đang quay về…";
+            } else {
+              throwButton.disabled = false;
+              throwButton.textContent = "Ván mới";
+            }
+          } else if (!ballReturning) {
+            throwButton.textContent = "Đang chuẩn bị…";
+            scheduleNextRollPreparation();
+          } else {
+            throwButton.textContent = "Bóng đang quay về…";
+          }
+        } catch (error) {
+          gameStatus.textContent = `Chưa đồng bộ được điểm: ${error.message}`;
+          throwButton.disabled = false;
+          throwButton.textContent = "Thử đồng bộ";
+        }
+      }
+
+      function throwBall(aimOffset, ballStart) {
+        if (!gameStarted || gameFinished || shotTaken || ball) {
+          return;
+        }
+
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+
+        const power = Math.max(50, Math.min(100, Math.round(chargePower)));
+        const endpoint = getRollEndpoint(aimOffset, power, ballStart.x, ballStart.y);
+        const hitPins = calculateKnockdown(aimOffset, power, endpoint.y, ballStart.x, ballStart.y);
+        const start = performance.now();
+        const duration = 2600 + (100 - power) * 6;
+        const returnDuration = 2500;
+        const impactY = pins.length ? pins[pins.length - 1].y : laneTopY;
+        const impactProgress = endpoint.y < impactY
+          ? (ballStart.y - impactY) / (ballStart.y - endpoint.y)
+          : 1;
+        const impactTime = duration * (1 - Math.cbrt(1 - impactProgress));
+        const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+        const frameIndex = getCurrentFrameIndex(ownPlayer);
+        const currentFrame = ownPlayer.frames[frameIndex];
+        const rollIndex = currentFrame.rolls.length;
+        let returnStartedAt = null;
+
+        shotTaken = true;
+        impactPlayed = false;
+        throwButton.disabled = true;
+        throwButton.textContent = "Bóng đang lăn…";
+        ball = { ...ballStart };
+        const rollSoundDelay = 0.3;
+        if (impactTime > rollSoundDelay * 1000) {
+          playRollingSound(
+            (impactTime / 1000) - rollSoundDelay,
+            (audioContext?.currentTime ?? 0) + rollSoundDelay,
+            true,
+          );
+        }
+        drawLane();
+
+        function animate(now) {
+          if (returnStartedAt === null) {
+            const progress = Math.min(1, (now - start) / duration);
+            const eased = 1 - (1 - progress) ** 3;
+            ball.x = ballStart.x + (endpoint.x - ballStart.x) * eased;
+            ball.y = ballStart.y + (endpoint.y - ballStart.y) * eased;
+
+            if (eased >= impactProgress && !impactPlayed) {
+              impactPlayed = true;
+              playPinCrash(hitPins.size);
+            }
+
+            for (const index of hitPins) {
+              const pin = pins[index];
+              const pinImpactProgress = (ballStart.y - pin.y) / (ballStart.y - endpoint.y);
+              if (eased >= pinImpactProgress && !pin.fallen) {
+                const pathRatio = (ballStart.y - pin.y) / (ballStart.y - laneTopY);
+                const ballXAtImpact = ballStart.x + (centerX + aimOffset - ballStart.x) * pathRatio;
+                let direction = Math.sign(pin.x - ballXAtImpact);
+                if (direction === 0) {
+                  direction = Math.random() < 0.5 ? -1 : 1;
+                }
+                pin.fallen = true;
+                pin.flight = {
+                  startedAt: now,
+                  elapsed: 0,
+                  velocityX: direction * (105 + Math.random() * 175),
+                  velocityY: -(250 + Math.random() * 150),
+                  gravity: 560,
+                  spin: (Math.random() < 0.5 ? -1 : 1) * (5 + Math.random() * 9),
+                };
+              }
+              if (pin.flight) {
+                pin.flight.elapsed = Math.max(0, (now - pin.flight.startedAt) / 1000);
+              }
+            }
+
+            if (progress < 1) {
+              drawLane();
+              animationFrame = requestAnimationFrame(animate);
+              return;
+            }
+
+            const knockedDown = hitPins.size;
+            for (const index of hitPins) {
+              pins[index].removed = true;
+            }
+
+            pendingRoll = {
+              rollId: window.crypto?.randomUUID?.()
+                ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+              frameIndex,
+              rollIndex,
+              pinsDown: knockedDown,
+              resetRack: shouldResetRackForNextRoll(currentFrame, frameIndex, knockedDown),
+            };
+            ballReturning = true;
+            returnStartedAt = now;
+            playRollingSound(returnDuration / 1000);
+            throwButton.textContent = "Bóng đang quay về…";
+            drawLane();
+            submitPendingRoll();
+            animationFrame = requestAnimationFrame(animate);
+            return;
+          }
+
+          const returnProgress = Math.min(1, (now - returnStartedAt) / returnDuration);
+          const easedReturn = 1 - (1 - returnProgress) ** 3;
+          const edgeX = (y) => centerX + getLaneHalfWidth(y) - 26;
+          if (easedReturn < 0.18) {
+            const sideProgress = easedReturn / 0.18;
+            ball.x = endpoint.x + (edgeX(endpoint.y) - endpoint.x) * sideProgress;
+            ball.y = endpoint.y;
+          } else if (easedReturn < 0.85) {
+            const laneProgress = (easedReturn - 0.18) / 0.67;
+            ball.y = endpoint.y + (ballStart.y - endpoint.y) * laneProgress;
+            ball.x = edgeX(ball.y);
+          } else {
+            const homeProgress = (easedReturn - 0.85) / 0.15;
+            ball.x = edgeX(ballStart.y) + (ballStart.x - edgeX(ballStart.y)) * homeProgress;
+            ball.y = ballStart.y;
+          }
+
+          drawLane();
+          if (returnProgress < 1) {
+            animationFrame = requestAnimationFrame(animate);
+            return;
+          }
+
+          ball = null;
+          ballReturning = false;
+          bowlerReleasePosition = null;
+          animationFrame = null;
+          if (gameFinished) {
+            throwButton.disabled = false;
+            throwButton.textContent = "Ván mới";
+          } else if (!pendingRoll) {
+            throwButton.textContent = "Đang chuẩn bị…";
+            scheduleNextRollPreparation();
+          }
+          drawLane();
+        }
+
+        animationFrame = requestAnimationFrame(animate);
+      }
+
+      function resetGame() {
+        if (gameMode === "solo" && gameFinished) {
+          startSoloGame();
+          return;
+        }
+        if (!gameStarted || !gameFinished) {
+          return;
+        }
+        throwButton.disabled = true;
+        gameStatus.textContent = "Đang bắt đầu ván mới…";
+        emitRoomCommand("archery_restart_player", { roomCode })
+          .then((response) => {
+            applyRoomState(response.room);
+            if (gameStarted) {
+              prepareNextArrow();
+            }
+          })
+          .catch((error) => {
+            gameStatus.textContent = error.message;
+            throwButton.disabled = false;
+            throwButton.textContent = "Thử lại";
+          });
+      }
+
+      throwButton.addEventListener("pointerdown", (event) => {
+        throwButton.setPointerCapture(event.pointerId);
+        startHoldingThrow();
+      });
+      throwButton.addEventListener("pointerup", releaseHoldingThrow);
+      throwButton.addEventListener("pointercancel", cancelHoldingThrow);
+      throwButton.addEventListener("click", (event) => {
+        if (pendingArrow) {
+          submitPendingArrow();
+          return;
+        }
+        if (pendingRoll) {
+          submitPendingRoll();
+          return;
+        }
+        if (gameFinished) {
+          resetGame();
+          return;
+        }
+        if (event.detail === 0 && !shotTaken && throwChargePhase === "idle") {
+          startHoldingThrow();
+          releaseHoldingThrow();
+        }
+      });
+      backToLobbyButton.addEventListener("click", returnToLobby);
+      soloGameButton.addEventListener("click", startSoloGame);
+      saveCharacterButton.addEventListener("click", savePlayerName);
+      createGameButton.addEventListener("click", startGame);
+      joinRoomButton.addEventListener("click", joinGame);
+      roomCodeInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          joinGame();
+        }
+      });
+      shareRoomButton.addEventListener("click", shareRoomLink);
+
+      backgroundImage.addEventListener("load", drawLane);
+      targetDetail.addEventListener("animationend", (event) => {
+        if (event.animationName === "target-impact") {
+          targetDetail.classList.remove("is-impact");
+        }
+      });
+      backgroundImage.addEventListener("error", () => {
+        lobbyNotification.textContent = "Không tải được hình nền bắn cung.";
+      });
+      bowSprite.addEventListener("load", drawLane);
+      bowSprite.addEventListener("error", () => {
+        lobbyNotification.textContent = "Không tải được ảnh cung thủ cung.png.";
+      });
+      updateControls();
+      renderRoomBoard();
+    </script>
+  </body>
+</html>

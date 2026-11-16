@@ -1,0 +1,2033 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bowling — Đường băng số 1</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #10191d;
+        color: #f4f4ec;
+        font-synthesis: none;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        padding: 24px 18px;
+        background:
+          radial-gradient(ellipse at 50% -10%, #355451 0, transparent 48%),
+          radial-gradient(ellipse at 100% 100%, #382a25 0, transparent 42%),
+          #10191d;
+      }
+
+      main {
+        width: min(100%, 1040px);
+        margin: 0 auto;
+      }
+
+      .room-board {
+        position: absolute;
+        z-index: 3;
+        top: 14px;
+        left: 14px;
+        width: calc(100% - 28px);
+        max-height: 25%;
+        overflow: auto;
+        padding: 8px;
+        border: 1px solid #d6c18c50;
+        border-radius: 14px;
+        background: rgba(12, 19, 22, 0.62);
+        backdrop-filter: blur(14px) saturate(135%);
+        box-shadow: 0 12px 32px #0005, inset 0 1px #ffffff12;
+        transition: transform 280ms ease, opacity 280ms ease;
+      }
+
+      .game.is-scoreboard-collapsed .room-board {
+        transform: translateY(calc(-100% - 18px));
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .room-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 6px;
+      }
+
+      .room-meta-label {
+        overflow: hidden;
+        color: #f0cf91;
+        font-size: 0.76rem;
+        font-weight: 750;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #share-room {
+        flex: 0 0 auto;
+        min-height: 34px;
+        padding: 6px 10px;
+        border-radius: 9px;
+        font-size: 0.72rem;
+      }
+
+      .game-status {
+        margin: 5px 0 0;
+        color: #c3d0c8;
+        font-size: 0.72rem;
+      }
+
+      .scoreboard-wrap {
+        overflow-x: auto;
+        margin: 0;
+      }
+
+      .scoreboard-wrap[hidden] {
+        display: none;
+      }
+
+      .scoreboard {
+        width: 100%;
+        min-width: 620px;
+        border-collapse: collapse;
+        font-size: 0.78rem;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+      }
+
+      .scoreboard caption {
+        padding: 10px;
+        color: #d7e2da;
+        font-weight: 750;
+        text-align: left;
+      }
+
+      .scoreboard th,
+      .scoreboard td {
+        min-width: 38px;
+        padding: 5px 4px;
+        border-top: 1px solid #ffffff16;
+      }
+
+      .scoreboard thead th {
+        color: #aebdb6;
+        font-weight: 700;
+      }
+
+      .scoreboard th:first-child {
+        min-width: 100px;
+        text-align: left;
+      }
+
+      .scoreboard tbody th {
+        overflow: hidden;
+        max-width: 160px;
+        color: #edf2eb;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .scoreboard-rolls {
+        display: block;
+        color: #aebdb6;
+        font-size: 0.68rem;
+        white-space: nowrap;
+      }
+
+      .scoreboard-frame-score {
+        display: block;
+        margin-top: 3px;
+        color: #f4d27a;
+      }
+
+      .scoreboard td.is-current {
+        background: #243a32;
+        color: #f4d27a;
+        font-weight: 800;
+      }
+
+      .lobby-card {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(20px, 5vw, 34px);
+        border: 1px solid #8da78d55;
+        border-radius: 26px;
+        background:
+          radial-gradient(ellipse at 100% 0%, #d9b76e1c, transparent 42%),
+          linear-gradient(145deg, #1d302fef, #10191df5 78%);
+        box-shadow: 0 28px 80px #0007, inset 0 1px #ffffff14;
+        backdrop-filter: blur(18px);
+      }
+
+      .lobby-card::before {
+        position: absolute;
+        top: -90px;
+        right: -70px;
+        width: 260px;
+        height: 260px;
+        border: 1px solid #f4d27a1b;
+        border-radius: 50%;
+        box-shadow: 0 0 0 22px #f4d27a08, 0 0 0 46px #f4d27a05;
+        content: "";
+        pointer-events: none;
+      }
+
+      .lobby-card > * {
+        position: relative;
+      }
+
+      .lobby-heading {
+        margin-bottom: 18px;
+      }
+
+      .lobby-heading h2 {
+        margin: 0;
+        font-size: clamp(1.6rem, 5vw, 2rem);
+        letter-spacing: -0.04em;
+      }
+
+      .lobby-heading p,
+      .lobby-note,
+      .lobby-help {
+        margin: 6px 0 0;
+        color: #aebdb6;
+        font-size: 0.84rem;
+        line-height: 1.5;
+      }
+
+      .character-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 10px;
+        margin-top: 18px;
+        padding: 14px;
+        border: 1px solid #72887b40;
+        border-radius: 16px;
+        background: #101b1e99;
+        box-shadow: inset 0 1px #ffffff0a;
+      }
+
+      .character-field {
+        display: grid;
+        gap: 7px;
+      }
+
+      .character-field label {
+        color: #d7e2da;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      .character-field input {
+        width: 100%;
+        min-height: 44px;
+        padding: 9px 11px;
+        border: 1px solid #526c60;
+        border-radius: 9px;
+        background: #14211d;
+        color: #f4f4ec;
+        font: inherit;
+      }
+
+      .character-status {
+        grid-column: 1 / -1;
+        margin: 0;
+        color: #aebdb6;
+        font-size: 0.76rem;
+      }
+
+      .lobby-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .room-code-entry {
+        display: grid;
+        gap: 6px;
+      }
+
+      .room-code-entry label {
+        color: #d7e2da;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      .room-code-entry > div {
+        display: flex;
+        gap: 8px;
+      }
+
+      .room-code-entry input {
+        width: 100%;
+        min-width: 0;
+        min-height: 52px;
+        padding: 9px 11px;
+        border: 1px solid #526c60;
+        border-radius: 9px;
+        background: #14211d;
+        color: #f4f4ec;
+        font: inherit;
+        font-weight: 750;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .room-code-entry button {
+        flex: 0 0 auto;
+        padding-inline: 14px;
+      }
+
+      .lobby-help {
+        text-align: center;
+      }
+
+      .lobby-notification {
+        min-height: 1.4em;
+        margin: 12px 0 0;
+        color: #f0cf91;
+        font-size: 0.83rem;
+      }
+
+      .game-mode {
+        margin: 0;
+        padding: 10px 12px;
+        border: 1px solid #45615a;
+        border-radius: 10px;
+        background: #1a2b2c;
+        color: #b6e2c3;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      section[hidden] {
+        display: none !important;
+      }
+
+      .field[hidden] {
+        display: none !important;
+      }
+
+      .game {
+        position: relative;
+        width: 100%;
+        height: 100svh;
+        min-height: 480px;
+        overflow: hidden;
+        background: #101719;
+      }
+
+      .lane-wrap {
+        display: grid;
+        position: absolute;
+        inset: 0;
+        grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+        place-items: center;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        background:
+          radial-gradient(ellipse at 50% 45%, #283633 0, #11191b 70%),
+          #11191b;
+      }
+
+      canvas {
+        display: block;
+        width: auto;
+        height: 100%;
+        max-width: none;
+        box-shadow: 0 14px 45px #0007;
+      }
+
+      .controls {
+        display: flex;
+        position: absolute;
+        z-index: 4;
+        right: 16px;
+        bottom: 100px;
+        flex-direction: column;
+        gap: 9px;
+        width: min(156px, 24vw);
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+
+      .power-meter {
+        width: 100%;
+        padding: 8px 6px;
+        border: 1px solid #d8c17a3d;
+        border-radius: 999px;
+        background: #090f10b8;
+      }
+
+      .power-meter-track {
+        height: 7px;
+        overflow: hidden;
+        border-radius: inherit;
+        background: #ffffff19;
+      }
+
+      .power-meter-fill {
+        display: block;
+        width: 50%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #8ccaa6, #f3d37e, #ef9666);
+        box-shadow: 0 0 14px #f3d37e77;
+        transition: width 80ms linear;
+      }
+
+      button {
+        min-height: 52px;
+        padding: 10px 8px;
+        border: 0;
+        border-radius: 13px;
+        background: linear-gradient(145deg, #d5efcc, #91c6a4);
+        color: #14211a;
+        font: inherit;
+        font-weight: 750;
+        cursor: pointer;
+        transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        background: #d1f1d8;
+        box-shadow: 0 8px 22px #b6e2c333;
+      }
+
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid #f4d27a;
+        outline-offset: 3px;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.65;
+      }
+
+      #throw {
+        touch-action: none;
+      }
+
+      button.secondary {
+        border: 1px solid #60766a;
+        background: #20302d;
+        color: #e3ebe5;
+      }
+
+      button.secondary:hover:not(:disabled) {
+        background: #263c3d;
+      }
+
+      @media (max-width: 720px) {
+        body {
+          padding: 12px;
+        }
+
+        .lobby-heading p {
+          margin-bottom: 18px;
+        }
+
+        .game {
+          width: 100vw;
+          height: 100svh;
+          min-height: 0;
+          margin: 0;
+          border: 0;
+          border-radius: 0;
+        }
+
+        .lane-wrap {
+          height: 100%;
+        }
+
+        canvas {
+          width: auto;
+          height: 100%;
+          max-width: none;
+          border-radius: 0;
+        }
+
+        .controls {
+          right: 12px;
+          bottom: 100px;
+          gap: 8px;
+          width: 82px;
+        }
+
+        .controls button {
+          min-height: 56px;
+          padding: 8px 4px;
+          font-size: 0.72rem;
+          line-height: 1.2;
+        }
+
+        .room-board {
+          top: 0;
+          left: 0;
+          width: 100%;
+          max-height: 25svh;
+          padding: 5px;
+          border-top: 0;
+          border-right: 0;
+          border-left: 0;
+          border-radius: 0 0 12px 12px;
+        }
+
+        .scoreboard {
+          width: 100%;
+          min-width: 0;
+          table-layout: fixed;
+          font-size: 0.58rem;
+        }
+
+        .scoreboard th,
+        .scoreboard td {
+          min-width: 0;
+          padding: 3px 1px;
+        }
+
+        .scoreboard th:first-child {
+          width: 18%;
+          min-width: 0;
+        }
+
+        .scoreboard-rolls {
+          font-size: 0.48rem;
+          white-space: normal;
+          overflow-wrap: anywhere;
+        }
+
+        .scoreboard-frame-score {
+          font-size: 0.58rem;
+        }
+
+        .lobby-actions {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .controls {
+          right: 8px;
+          width: 72px;
+        }
+      }
+
+      body.is-playing {
+        min-height: 100svh;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      body.is-playing main {
+        width: 100%;
+        height: 100svh;
+        margin: 0;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="lobby-card" id="lobby" aria-labelledby="lobby-title">
+        <div class="lobby-heading">
+          <h2 id="lobby-title">Sảnh chờ</h2>
+          <p>Tạo phòng mới hoặc nhập mã phòng để cùng chơi online. Mỗi người tự chơi theo nhịp riêng.</p>
+        </div>
+
+        <section class="character-card" aria-labelledby="character-title">
+          <div class="character-field">
+            <label id="character-title" for="player-name">Tên nhân vật</label>
+            <input id="player-name" type="text" maxlength="20" value="Người chơi 1" autocomplete="nickname">
+          </div>
+          <button id="save-character" type="button">Lưu tên</button>
+          <p class="character-status" id="character-status" aria-live="polite">Tên được lưu trên thiết bị này.</p>
+        </section>
+
+        <div class="lobby-actions">
+          <button id="create-game" type="button">Tạo phòng mới</button>
+          <div class="room-code-entry">
+            <label for="room-code">Mã phòng</label>
+            <div>
+              <input id="room-code" type="text" maxlength="6" autocomplete="off" placeholder="ABC123">
+              <button id="join-room" class="secondary" type="button">Vào phòng</button>
+            </div>
+          </div>
+        </div>
+        <p class="lobby-notification" id="lobby-notification" aria-live="polite"></p>
+      </section>
+
+      <section class="game" id="game" aria-label="Màn chơi bowling" hidden>
+        <div class="lane-wrap">
+          <canvas id="lane" width="800" height="1000" role="img" aria-label="Đường băng bowling với 10 ki">
+            Trình duyệt của bạn không hỗ trợ canvas.
+          </canvas>
+        </div>
+        <section class="room-board" aria-label="Bảng điểm">
+          <div class="room-meta">
+            <div>
+              <span class="room-meta-label" id="room-label"></span>
+              <p class="game-status" id="game-status" aria-live="polite"></p>
+            </div>
+            <button class="secondary" id="share-room" type="button">Chia sẻ</button>
+          </div>
+          <div class="scoreboard-wrap" id="scoreboard-wrap" hidden aria-live="polite">
+            <table class="scoreboard">
+              <thead id="scoreboard-head"></thead>
+              <tbody id="scoreboard-body"></tbody>
+            </table>
+          </div>
+        </section>
+        <div class="controls">
+          <div class="power-meter" id="power-field" hidden>
+            <div class="power-meter-track" id="power-meter" role="meter" aria-label="Lực ném" aria-valuemin="50" aria-valuemax="100" aria-valuenow="50">
+              <span class="power-meter-fill" id="power-meter-fill"></span>
+            </div>
+          </div>
+          <button id="throw" type="button">Giữ để ném</button>
+          <button class="secondary" id="back-to-lobby" type="button">Về sảnh</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const canvas = document.querySelector("#lane");
+      const context = canvas.getContext("2d");
+      const powerField = document.querySelector("#power-field");
+      const powerMeter = document.querySelector("#power-meter");
+      const powerMeterFill = document.querySelector("#power-meter-fill");
+      const throwButton = document.querySelector("#throw");
+      const backToLobbyButton = document.querySelector("#back-to-lobby");
+      const roomBoard = document.querySelector(".room-board");
+      const scoreboardWrap = document.querySelector("#scoreboard-wrap");
+      const scoreboardHead = document.querySelector("#scoreboard-head");
+      const scoreboardBody = document.querySelector("#scoreboard-body");
+      const lobby = document.querySelector("#lobby");
+      const game = document.querySelector("#game");
+      const playerNameInput = document.querySelector("#player-name");
+      const saveCharacterButton = document.querySelector("#save-character");
+      const characterStatus = document.querySelector("#character-status");
+      const createGameButton = document.querySelector("#create-game");
+      const roomCodeInput = document.querySelector("#room-code");
+      const joinRoomButton = document.querySelector("#join-room");
+      const lobbyNotification = document.querySelector("#lobby-notification");
+      const roomLabel = document.querySelector("#room-label");
+      const gameStatus = document.querySelector("#game-status");
+      const shareRoomButton = document.querySelector("#share-room");
+      const socket = io();
+
+      const width = 800;
+      const height = 1000;
+      const centerX = width / 2;
+      const laneTopY = 90;
+      const pins = [];
+      let ball = null;
+      let ballReturning = false;
+      let bowlerReleasePosition = null;
+      let lockedAimOffset = 0;
+      let animationFrame = null;
+      let chargeAnimationFrame = null;
+      let chargeStartTime = 0;
+      let shotTaken = false;
+      let impactPlayed = false;
+      let soundEnabled = true;
+      let audioContext = null;
+      let masterGain = null;
+      let playerName = "Người chơi 1";
+      let playerId = "";
+      let roomCode = "";
+      let gamePlayers = [];
+      let currentFrameIndex = -1;
+      let gameStarted = false;
+      let gameFinished = false;
+      let pendingRackReset = false;
+      let pendingRoll = null;
+      let throwChargePhase = "idle";
+      let chargePower = 50;
+      let nextRollTimeout = null;
+      let rollsSinceScoreboardCollapsed = 0;
+
+      function setScoreboardCollapsed(collapsed) {
+        game.classList.toggle("is-scoreboard-collapsed", collapsed);
+        roomBoard.setAttribute("aria-hidden", String(collapsed));
+        roomBoard.inert = collapsed;
+        if (!collapsed) {
+          rollsSinceScoreboardCollapsed = 0;
+        }
+      }
+
+      try {
+        const savedName = window.localStorage.getItem("bowling-character-name");
+        if (savedName?.trim()) {
+          playerName = savedName.trim().slice(0, 20);
+        }
+      } catch (error) {
+        characterStatus.textContent = `Không đọc được tên đã lưu: ${error.message}`;
+      }
+
+      try {
+        playerId = window.sessionStorage.getItem("bowling-player-id") || "";
+        if (!playerId) {
+          playerId = window.crypto?.randomUUID?.()
+            ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          window.sessionStorage.setItem("bowling-player-id", playerId);
+        }
+      } catch {
+        playerId = window.crypto?.randomUUID?.()
+          ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      }
+
+      playerNameInput.value = playerName;
+
+      const requestedRoomCode = new URLSearchParams(window.location.search).get("room");
+      if (requestedRoomCode) {
+        roomCodeInput.value = requestedRoomCode.toUpperCase().slice(0, 6);
+      }
+
+      socket.on("connect", () => {
+        if (gameStarted && roomCode) {
+          rejoinCurrentRoom();
+        } else {
+          characterStatus.textContent = "Đã kết nối máy chủ phòng chơi.";
+        }
+      });
+
+      socket.on("disconnect", () => {
+        if (gameStarted) {
+          gameStatus.textContent = "Mất kết nối; đang thử kết nối lại…";
+        } else {
+          lobbyNotification.textContent = "Mất kết nối máy chủ; đang thử kết nối lại…";
+        }
+      });
+
+      socket.on("connect_error", () => {
+        const message = "Không kết nối được máy chủ phòng chơi.";
+        if (gameStarted) {
+          gameStatus.textContent = message;
+        } else {
+          lobbyNotification.textContent = message;
+        }
+      });
+
+      socket.on("room_state", (room) => {
+        if (room.code !== roomCode) {
+          return;
+        }
+        applyRoomState(room);
+      });
+
+      const pinOffsets = [
+        [0],
+        [-18, 18],
+        [-38, 0, 38],
+        [-60, -20, 20, 60],
+      ];
+
+      for (let row = 0; row < pinOffsets.length; row += 1) {
+        for (const offset of pinOffsets[row]) {
+          pins.push({
+            x: centerX + offset * 0.7,
+            y: laneTopY + 18 + row * 17,
+            row,
+            fallen: false,
+            flight: null,
+            removed: false,
+          });
+        }
+      }
+
+      function getFrameScore(player, frameIndex) {
+        const frameRolls = player.frames[frameIndex].rolls;
+        if (frameRolls.length === 0) {
+          return null;
+        }
+
+        return Math.min(frameRolls.reduce((sum, pinsDown) => sum + pinsDown, 0), 20);
+      }
+
+      function isFrameComplete(frame, frameIndex) {
+        const rolls = frame.rolls;
+        if (rolls.length >= 2 && rolls[0] + rolls[1] >= 20) {
+          return true;
+        }
+        if (frameIndex < 9) {
+          return rolls.length >= (rolls[0] === 10 ? 3 : 2);
+        }
+        if (rolls.length < 2) {
+          return false;
+        }
+        return rolls.length >= (rolls[0] === 10 || rolls[0] + rolls[1] === 10 ? 3 : 2);
+      }
+
+      function getCurrentFrameIndex(player) {
+        return player.frames.findIndex((frame, index) => !isFrameComplete(frame, index));
+      }
+
+      function renderRoomBoard() {
+        scoreboardHead.replaceChildren();
+        scoreboardBody.replaceChildren();
+        scoreboardWrap.hidden = !gameStarted;
+        const onlineCount = gamePlayers.filter((player) => player.connected).length;
+        roomLabel.textContent = `Phòng ${roomCode} · ${onlineCount}/${gamePlayers.length} người`;
+        const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+        currentFrameIndex = ownPlayer ? getCurrentFrameIndex(ownPlayer) : -1;
+        gameFinished = currentFrameIndex < 0;
+        if (socket.connected && ownPlayer) {
+          gameStatus.textContent = gameFinished
+            ? `Bạn đã hoàn thành ván · tổng ${ownPlayer.score} điểm`
+            : `Bạn đang chơi khung ${currentFrameIndex + 1} · các thành viên chơi độc lập`;
+        }
+        if (!gameStarted) {
+          return;
+        }
+
+        const headerRow = document.createElement("tr");
+        const playerHeading = document.createElement("th");
+        playerHeading.scope = "col";
+        playerHeading.textContent = "Người chơi";
+        headerRow.append(playerHeading);
+        for (let frameIndex = 0; frameIndex < 10; frameIndex += 1) {
+          const heading = document.createElement("th");
+          heading.scope = "col";
+          heading.textContent = String(frameIndex + 1);
+          headerRow.append(heading);
+        }
+        const totalHeading = document.createElement("th");
+        totalHeading.scope = "col";
+        totalHeading.textContent = "Tổng";
+        headerRow.append(totalHeading);
+        scoreboardHead.append(headerRow);
+
+        for (const player of gamePlayers) {
+          const row = document.createElement("tr");
+          const nameCell = document.createElement("th");
+          nameCell.scope = "row";
+          nameCell.textContent = player.connected ? player.name : `${player.name} · mất kết nối`;
+          row.append(nameCell);
+
+          for (let frameIndex = 0; frameIndex < 10; frameIndex += 1) {
+            const cell = document.createElement("td");
+            const frameScore = getFrameScore(player, frameIndex);
+            if (frameScore === null) {
+              cell.textContent = "—";
+            } else {
+              const rolls = document.createElement("span");
+              rolls.className = "scoreboard-rolls";
+              rolls.textContent = player.frames[frameIndex].rolls.join(" · ");
+              const score = document.createElement("strong");
+              score.className = "scoreboard-frame-score";
+              score.textContent = String(frameScore);
+              cell.append(rolls, score);
+            }
+            if (getCurrentFrameIndex(player) === frameIndex) {
+              cell.className = "is-current";
+            }
+            row.append(cell);
+          }
+
+          const totalCell = document.createElement("td");
+          totalCell.textContent = String(player.score);
+          row.append(totalCell);
+          scoreboardBody.append(row);
+        }
+      }
+
+      function savePlayerName() {
+        const name = playerNameInput.value.trim().slice(0, 20);
+        if (!name) {
+          characterStatus.textContent = "Nhập tên nhân vật trước khi lưu.";
+          playerNameInput.focus();
+          return false;
+        }
+
+        playerName = name;
+        try {
+          window.localStorage.setItem("bowling-character-name", playerName);
+          characterStatus.textContent = `Đã lưu tên “${playerName}” trên thiết bị này.`;
+        } catch (error) {
+          characterStatus.textContent = `Không lưu được tên trên thiết bị: ${error.message}`;
+        }
+        renderRoomBoard();
+        return true;
+      }
+
+      function emitRoomCommand(eventName, payload) {
+        return new Promise((resolve, reject) => {
+          if (!socket.connected) {
+            reject(new Error("Đang mất kết nối tới máy chủ."));
+            return;
+          }
+          socket.timeout(7000).emit(eventName, payload, (timeoutError, response) => {
+            if (timeoutError) {
+              reject(new Error("Máy chủ không phản hồi. Hãy thử lại."));
+              return;
+            }
+            if (!response?.ok) {
+              reject(new Error(response?.error || "Không thể hoàn tất thao tác."));
+              return;
+            }
+            resolve(response);
+          });
+        });
+      }
+
+      function applyRoomState(room) {
+        gamePlayers = room.players;
+        if (!gamePlayers.some((player) => player.id === playerId)) {
+          gameStatus.textContent = "Bạn đã rời khỏi phòng.";
+          returnToLobby();
+          return;
+        }
+        renderRoomBoard();
+      }
+
+      function enterRoom(room) {
+        roomCode = room.code;
+        gamePlayers = room.players;
+        gameStarted = true;
+        setScoreboardCollapsed(false);
+        lobby.hidden = true;
+        game.hidden = false;
+        document.body.classList.add("is-playing");
+        window.history.replaceState(null, "", `?room=${encodeURIComponent(roomCode)}`);
+        applyRoomState(room);
+        prepareNextRoll(true);
+      }
+
+      async function startGame() {
+        if (!savePlayerName()) {
+          return;
+        }
+        createGameButton.disabled = true;
+        joinRoomButton.disabled = true;
+        lobbyNotification.textContent = "Đang tạo phòng…";
+        try {
+          const response = await emitRoomCommand("create_room", { playerId, name: playerName });
+          enterRoom(response.room);
+        } catch (error) {
+          lobbyNotification.textContent = error.message;
+        } finally {
+          createGameButton.disabled = false;
+          joinRoomButton.disabled = false;
+        }
+      }
+
+      async function joinGame() {
+        if (!savePlayerName()) {
+          return;
+        }
+        const requestedRoomCode = roomCodeInput.value.trim().toUpperCase();
+        if (!requestedRoomCode) {
+          lobbyNotification.textContent = "Nhập mã phòng trước khi tham gia.";
+          roomCodeInput.focus();
+          return;
+        }
+        createGameButton.disabled = true;
+        joinRoomButton.disabled = true;
+        lobbyNotification.textContent = "Đang vào phòng…";
+        try {
+          const response = await emitRoomCommand("join_room", {
+            roomCode: requestedRoomCode,
+            playerId,
+            name: playerName,
+          });
+          enterRoom(response.room);
+        } catch (error) {
+          lobbyNotification.textContent = error.message;
+        } finally {
+          createGameButton.disabled = false;
+          joinRoomButton.disabled = false;
+        }
+      }
+
+      async function rejoinCurrentRoom() {
+        try {
+          const response = await emitRoomCommand("join_room", {
+            roomCode,
+            playerId,
+            name: playerName,
+          });
+          applyRoomState(response.room);
+          if (pendingRoll) {
+            submitPendingRoll();
+          }
+        } catch (error) {
+          gameStatus.textContent = error.message;
+        }
+      }
+
+      async function shareRoomLink() {
+        const inviteUrl = new URL(window.location.href);
+        inviteUrl.searchParams.set("room", roomCode);
+        try {
+          await window.navigator.clipboard.writeText(inviteUrl.href);
+          gameStatus.textContent = "Đã sao chép liên kết mời chơi.";
+        } catch (error) {
+          gameStatus.textContent = `Không sao chép được liên kết. Mã phòng: ${roomCode}`;
+        }
+      }
+
+      function syncThrowButtonLabel() {
+        if (throwButton.disabled) {
+          return;
+        }
+
+        if (throwChargePhase === "charging") {
+          throwButton.textContent = "Đang lấy đà…";
+          return;
+        }
+
+        throwButton.textContent = gameFinished ? "Ván mới" : "Giữ để ném";
+      }
+
+      function resetPinRack() {
+        for (const pin of pins) {
+          pin.fallen = false;
+          pin.flight = null;
+          pin.removed = false;
+        }
+      }
+
+      function prepareNextRoll(resetRack) {
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+        if (nextRollTimeout !== null) {
+          window.clearTimeout(nextRollTimeout);
+          nextRollTimeout = null;
+        }
+
+        if (resetRack) {
+          resetPinRack();
+        }
+
+        ball = null;
+        ballReturning = false;
+        bowlerReleasePosition = null;
+        lockedAimOffset = 0;
+        shotTaken = false;
+        impactPlayed = false;
+        throwChargePhase = "idle";
+        chargePower = 50;
+        pendingRackReset = false;
+        pendingRoll = null;
+        powerField.hidden = true;
+        const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+        currentFrameIndex = ownPlayer ? getCurrentFrameIndex(ownPlayer) : -1;
+        gameFinished = currentFrameIndex < 0;
+        throwButton.disabled = false;
+        updateControls();
+        syncThrowButtonLabel();
+        renderRoomBoard();
+      }
+
+      function scheduleNextRollPreparation() {
+        if (nextRollTimeout !== null) {
+          window.clearTimeout(nextRollTimeout);
+        }
+        nextRollTimeout = window.setTimeout(() => {
+          nextRollTimeout = null;
+          if (gameStarted && !gameFinished && !pendingRoll && !ballReturning) {
+            prepareNextRoll(pendingRackReset);
+          }
+        }, 900);
+      }
+
+      function returnToLobby() {
+        if (animationFrame !== null) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = null;
+        }
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+        if (nextRollTimeout !== null) {
+          window.clearTimeout(nextRollTimeout);
+          nextRollTimeout = null;
+        }
+        if (socket.connected && roomCode) {
+          socket.emit("leave_room", { roomCode });
+        }
+        roomCode = "";
+        gamePlayers = [];
+        currentFrameIndex = -1;
+        gameFinished = false;
+        pendingRoll = null;
+        rollsSinceScoreboardCollapsed = 0;
+        setScoreboardCollapsed(false);
+        gameStarted = false;
+        game.hidden = true;
+        lobby.hidden = false;
+        document.body.classList.remove("is-playing");
+        ball = null;
+        ballReturning = false;
+        bowlerReleasePosition = null;
+        lockedAimOffset = 0;
+        shotTaken = false;
+        throwChargePhase = "idle";
+        powerField.hidden = true;
+        window.history.replaceState(null, "", window.location.pathname);
+        renderRoomBoard();
+        createGameButton.focus();
+      }
+
+      function drawLane() {
+        context.clearRect(0, 0, width, height);
+        const room = context.createLinearGradient(0, 0, 0, height);
+        room.addColorStop(0, "#11191e");
+        room.addColorStop(0.28, "#1c2528");
+        room.addColorStop(0.52, "#161c1e");
+        room.addColorStop(1, "#10191d");
+        context.fillStyle = room;
+        context.fillRect(0, 0, width, height);
+
+        drawRoomBackdrop();
+
+        const backlight = context.createRadialGradient(centerX, laneTopY + 35, 12, centerX, laneTopY + 35, 340);
+        backlight.addColorStop(0, "#c9a46e18");
+        backlight.addColorStop(1, "#c9a46e00");
+        context.fillStyle = backlight;
+        context.fillRect(0, 0, width, 560);
+
+        drawAlleyLane(48, 300, 225, 48, laneTopY, 930, "#76543c");
+        drawAlleyLane(752, 500, 225, 48, laneTopY, 930, "#76543c");
+        drawAlleyLane(centerX, centerX, 292, 82, laneTopY, 930, "#d9a964");
+
+        const approach = context.createLinearGradient(0, 920, 0, 1000);
+        approach.addColorStop(0, "#282c2b");
+        approach.addColorStop(1, "#101619");
+        context.fillStyle = approach;
+        context.fillRect(0, 930, width, 70);
+
+        for (const pin of pins) {
+          if (!pin.removed) {
+            drawPin(pin);
+          }
+        }
+
+        const heldBall = ball && bowlerReleasePosition
+          ? bowlerReleasePosition
+          : getHeldBallPosition();
+        drawBowler(heldBall);
+        if (ball) {
+          drawBall(ball.x, ball.y);
+        } else {
+          drawBall(heldBall.x, heldBall.y);
+          if (throwChargePhase === "charging") {
+            drawAimLine(getAimTargetOffset());
+          }
+        }
+      }
+
+      function drawRoomBackdrop() {
+        context.save();
+        context.scale(1, 0.3);
+        const wall = context.createLinearGradient(0, 0, 0, 270);
+        wall.addColorStop(0, "#202b32");
+        wall.addColorStop(0.55, "#293238");
+        wall.addColorStop(1, "#493d37");
+        context.fillStyle = wall;
+        context.fillRect(0, 0, width, 270);
+
+        context.fillStyle = "#0b1118";
+        context.fillRect(0, 0, width, 32);
+        context.fillStyle = "#d6b77c28";
+        context.fillRect(0, 244, width, 5);
+        context.fillStyle = "#ffffff0b";
+        for (const x of [120, 280, 520, 680]) {
+          context.beginPath();
+          context.moveTo(x - 34, 0);
+          context.lineTo(x + 7, 0);
+          context.lineTo(x + 116, 244);
+          context.lineTo(x + 68, 244);
+          context.closePath();
+          context.fill();
+        }
+
+        for (const x of [92, 267, 533, 708]) {
+          const glow = context.createRadialGradient(x, 213, 2, x, 213, 92);
+          glow.addColorStop(0, "#f6d79a2b");
+          glow.addColorStop(1, "#f6d79a00");
+          context.fillStyle = glow;
+          context.fillRect(x - 92, 121, 184, 145);
+          context.fillStyle = "#f7e0b0";
+          context.beginPath();
+          context.ellipse(x, 212, 25, 7, 0, 0, Math.PI * 2);
+          context.fill();
+        }
+
+        context.strokeStyle = "#d7c6a328";
+        context.lineWidth = 3;
+        context.beginPath();
+        context.moveTo(0, 251);
+        context.lineTo(width, 251);
+        context.stroke();
+        context.textAlign = "start";
+        context.restore();
+      }
+
+      function fillPolygon(points, fillStyle) {
+        context.fillStyle = fillStyle;
+        context.beginPath();
+        context.moveTo(points[0][0], points[0][1]);
+        for (let index = 1; index < points.length; index += 1) {
+          context.lineTo(points[index][0], points[index][1]);
+        }
+        context.closePath();
+        context.fill();
+      }
+
+      function drawAlleyLane(nearCenter, farCenter, nearHalf, farHalf, topY, bottomY, woodColor) {
+        const gutter = 15;
+        fillPolygon([
+          [farCenter - farHalf - gutter, topY],
+          [farCenter + farHalf + gutter, topY],
+          [nearCenter + nearHalf + gutter, bottomY],
+          [nearCenter - nearHalf - gutter, bottomY],
+        ], "#171a20");
+        fillPolygon([
+          [farCenter - farHalf, topY],
+          [farCenter + farHalf, topY],
+          [nearCenter + nearHalf, bottomY],
+          [nearCenter - nearHalf, bottomY],
+        ], woodColor);
+
+        if (nearCenter !== centerX) {
+          context.strokeStyle = "#ffffff18";
+          context.lineWidth = 2;
+          context.beginPath();
+          context.moveTo(farCenter, topY);
+          context.lineTo(nearCenter, bottomY);
+          context.stroke();
+          return;
+        }
+
+        const wood = context.createLinearGradient(0, topY, 0, bottomY);
+        wood.addColorStop(0, "#f3d496");
+        wood.addColorStop(0.52, "#dcae6c");
+        wood.addColorStop(1, "#bd854a");
+        fillPolygon([
+          [farCenter - farHalf, topY],
+          [farCenter + farHalf, topY],
+          [nearCenter + nearHalf, bottomY],
+          [nearCenter - nearHalf, bottomY],
+        ], wood);
+
+        for (let board = 1; board < 19; board += 1) {
+          const fraction = board / 19 * 2 - 1;
+          context.strokeStyle = board % 2 === 0 ? "#fff6df20" : "#623a1a1c";
+          context.lineWidth = board % 3 === 0 ? 2 : 1;
+          context.beginPath();
+          context.moveTo(farCenter + fraction * farHalf, topY);
+          context.lineTo(nearCenter + fraction * nearHalf, bottomY);
+          context.stroke();
+        }
+
+        for (const markerY of [575, 690]) {
+          const ratio = (markerY - topY) / (bottomY - topY);
+          const half = farHalf + (nearHalf - farHalf) * ratio;
+          context.strokeStyle = "#75502d35";
+          context.lineWidth = 2;
+          context.beginPath();
+          context.moveTo(centerX - half * 0.88, markerY);
+          context.lineTo(centerX + half * 0.88, markerY);
+          context.stroke();
+        }
+
+        const arrowY = 660;
+        const arrowRatio = (arrowY - topY) / (bottomY - topY);
+        const arrowHalf = farHalf + (nearHalf - farHalf) * arrowRatio;
+        for (let arrow = -3; arrow <= 3; arrow += 1) {
+          const x = centerX + arrow * arrowHalf * 0.19;
+          context.fillStyle = "#68451f83";
+          context.beginPath();
+          context.moveTo(x, arrowY);
+          context.lineTo(x - 7, arrowY + 15);
+          context.lineTo(x + 7, arrowY + 15);
+          context.closePath();
+          context.fill();
+        }
+
+        context.strokeStyle = "#fff1ce99";
+        context.lineWidth = 3;
+        context.beginPath();
+        context.moveTo(centerX - nearHalf * 0.94, 858);
+        context.lineTo(centerX + nearHalf * 0.94, 858);
+        context.stroke();
+        context.strokeStyle = "#61391f";
+        context.lineWidth = 4;
+        context.beginPath();
+        context.moveTo(farCenter - farHalf, topY);
+        context.lineTo(nearCenter - nearHalf, bottomY);
+        context.moveTo(farCenter + farHalf, topY);
+        context.lineTo(nearCenter + nearHalf, bottomY);
+        context.stroke();
+      }
+
+      function drawPin(pin) {
+        const scale = (0.78 + pin.row * 0.18) * 0.68;
+        const radiusX = 18 * scale;
+        const radiusY = 28 * scale;
+        const flightTime = pin.flight?.elapsed ?? 0;
+        const x = pin.x + (pin.flight ? pin.flight.velocityX * flightTime : 0);
+        const y = pin.y + (pin.flight
+          ? pin.flight.velocityY * flightTime + 0.5 * pin.flight.gravity * flightTime ** 2
+          : 0);
+
+        context.save();
+        context.translate(x, y);
+        if (pin.flight) {
+          context.rotate(pin.flight.spin * flightTime);
+        }
+
+        context.fillStyle = "#593b2580";
+        context.beginPath();
+        context.ellipse(2, 10 + flightTime * 28, radiusX + 6, radiusY + 7, 0, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = pin.flight ? "#fffdf1" : pin.fallen ? "#c8c0ab" : "#fffdf1";
+        context.beginPath();
+        context.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = "#c9453c";
+        context.fillRect(-radiusX * 0.78, -radiusY * 0.08, radiusX * 1.56, 6 * scale);
+        context.fillRect(-radiusX * 0.68, radiusY * 0.12, radiusX * 1.36, 5 * scale);
+
+        context.restore();
+      }
+
+      function getHeldBallPosition() {
+        const elapsed = throwChargePhase === "charging"
+          ? Math.max(0, performance.now() - chargeStartTime)
+          : 0;
+        const progress = Math.min(1, elapsed / 550);
+        const swing = progress * progress * (3 - 2 * progress);
+        return {
+          x: centerX + swing * 24,
+          y: 842 + swing * 32,
+        };
+      }
+
+      function drawBowler(heldBall) {
+        const bodyX = centerX - 55;
+        context.save();
+        context.translate(heldBall.x, heldBall.y);
+        context.scale(1.2, 1.2);
+        context.translate(-heldBall.x, -heldBall.y);
+        context.fillStyle = "#05090cbd";
+        context.strokeStyle = "#05090cbd";
+        context.lineCap = "round";
+        context.lineJoin = "round";
+
+        context.lineWidth = 19;
+        context.beginPath();
+        context.moveTo(bodyX + 16, 850);
+        context.lineTo(bodyX + 39, 846);
+        context.lineTo(heldBall.x - 12, heldBall.y);
+        context.stroke();
+        context.lineWidth = 16;
+        context.beginPath();
+        context.moveTo(bodyX - 17, 850);
+        context.lineTo(bodyX - 38, 879);
+        context.stroke();
+
+        fillPolygon([
+          [bodyX - 26, 890],
+          [bodyX - 3, 894],
+          [bodyX - 20, 970],
+          [bodyX - 48, 970],
+        ], "#05090cbd");
+        fillPolygon([
+          [bodyX + 1, 892],
+          [bodyX + 24, 889],
+          [bodyX + 35, 970],
+          [bodyX + 8, 970],
+        ], "#05090cbd");
+
+        context.beginPath();
+        context.moveTo(bodyX - 31, 840);
+        context.quadraticCurveTo(bodyX - 18, 834, bodyX - 4, 840);
+        context.lineTo(bodyX + 15, 897);
+        context.quadraticCurveTo(bodyX - 2, 909, bodyX - 27, 901);
+        context.closePath();
+        context.fill();
+
+        context.beginPath();
+        context.ellipse(bodyX - 12, 813, 21, 25, 0, 0, Math.PI * 2);
+        context.fill();
+        context.beginPath();
+        context.arc(heldBall.x - 12, heldBall.y, 8, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+      }
+
+      function drawBall(x, y) {
+        const depth = Math.max(0, Math.min(1, (y - laneTopY) / (842 - laneTopY)));
+        const radius = 12 + depth * 16;
+        const shine = context.createRadialGradient(
+          x - radius * 0.35,
+          y - radius * 0.4,
+          2,
+          x,
+          y,
+          radius,
+        );
+        shine.addColorStop(0, "#d8eff0");
+        shine.addColorStop(0.25, "#5d9fa0");
+        shine.addColorStop(1, "#1c5158");
+        context.fillStyle = "#38281a66";
+        context.beginPath();
+        context.ellipse(x + 3, y + radius * 0.8, radius * 1.1, radius * 0.38, 0, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = shine;
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = "#d8eff0aa";
+        for (const [dx, dy] of [[-5, -4], [4, -5], [0, 5]]) {
+          context.beginPath();
+          context.arc(x + dx * radius / 28, y + dy * radius / 28, Math.max(1.5, radius * 0.07), 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+
+      function getAimTargetOffset() {
+        if (throwChargePhase === "charging") {
+          const elapsed = Math.max(0, (performance.now() - chargeStartTime) / 1000);
+          const rampDuration = 2.5;
+          const initialSpeed = 1.5;
+          const acceleration = 1.6;
+          const maxSpeed = initialSpeed + acceleration * rampDuration;
+          const rampElapsed = Math.min(elapsed, rampDuration);
+          const rampPhase = initialSpeed * rampElapsed + 0.5 * acceleration * rampElapsed ** 2;
+          const phase = rampPhase + Math.max(0, elapsed - rampDuration) * maxSpeed;
+          return Math.sin(phase) * 65;
+        }
+
+        return 0;
+      }
+
+      function getLaneHalfWidth(y) {
+        const laneProgress = Math.max(0, Math.min(1, (y - laneTopY) / (930 - laneTopY)));
+        return 82 + laneProgress * (292 - 82);
+      }
+
+      function drawAimLine(aimOffset) {
+        const targetX = centerX + aimOffset;
+        const arrowColor = "#f4d27a";
+        const aimTargetY = laneTopY;
+        const heldBall = bowlerReleasePosition ?? getHeldBallPosition();
+        context.strokeStyle = `${arrowColor}cc`;
+        context.lineWidth = 4;
+        context.setLineDash([9, 12]);
+        context.beginPath();
+        context.moveTo(heldBall.x, heldBall.y - 18);
+        context.lineTo(targetX, aimTargetY);
+        context.stroke();
+        context.setLineDash([]);
+        context.fillStyle = arrowColor;
+        context.beginPath();
+        context.moveTo(targetX, aimTargetY - 11);
+        context.lineTo(targetX - 10, aimTargetY + 7);
+        context.lineTo(targetX + 10, aimTargetY + 7);
+        context.closePath();
+        context.fill();
+      }
+
+      function updateControls() {
+        powerMeter.setAttribute("aria-valuenow", String(Math.round(chargePower)));
+        powerMeterFill.style.width = `${chargePower}%`;
+        syncThrowButtonLabel();
+        drawLane();
+      }
+
+      function disableSound(error) {
+        soundEnabled = false;
+        console.error("Không thể phát hiệu ứng bowling:", error);
+      }
+
+      function getAudioContext() {
+        if (!soundEnabled) {
+          return null;
+        }
+
+        const AudioContextConstructor = window.AudioContext ?? window.webkitAudioContext;
+        if (!AudioContextConstructor) {
+          soundEnabled = false;
+          console.warn("Trình duyệt này không hỗ trợ Web Audio API.");
+          return null;
+        }
+
+        try {
+          if (!audioContext) {
+            audioContext = new AudioContextConstructor();
+            masterGain = audioContext.createGain();
+            masterGain.gain.value = 0.5;
+
+            const compressor = audioContext.createDynamicsCompressor();
+            compressor.threshold.value = -18;
+            compressor.knee.value = 20;
+            compressor.ratio.value = 3;
+            compressor.attack.value = 0.004;
+            compressor.release.value = 0.24;
+            compressor.connect(audioContext.destination);
+            masterGain.connect(compressor);
+
+            const reverb = audioContext.createConvolver();
+            const impulseDuration = 1.4;
+            const impulse = audioContext.createBuffer(
+              2,
+              Math.ceil(audioContext.sampleRate * impulseDuration),
+              audioContext.sampleRate,
+            );
+            for (let channel = 0; channel < impulse.numberOfChannels; channel += 1) {
+              const samples = impulse.getChannelData(channel);
+              for (let index = 0; index < samples.length; index += 1) {
+                const decay = (1 - index / samples.length) ** 2.8;
+                samples[index] = (Math.random() * 2 - 1) * decay;
+              }
+            }
+            reverb.buffer = impulse;
+            const roomGain = audioContext.createGain();
+            roomGain.gain.value = 0.19;
+            masterGain.connect(reverb);
+            reverb.connect(roomGain);
+            roomGain.connect(compressor);
+          }
+
+          if (audioContext.state === "suspended") {
+            audioContext.resume().catch(disableSound);
+          }
+          return audioContext;
+        } catch (error) {
+          disableSound(error);
+          return null;
+        }
+      }
+
+      function playTone(frequency, endFrequency, startAt, duration, volume, type = "sine") {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const oscillator = audio.createOscillator();
+        const gain = audio.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, startAt);
+        oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), startAt + duration);
+        gain.gain.setValueAtTime(0.0001, startAt);
+        gain.gain.linearRampToValueAtTime(volume, startAt + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+        oscillator.connect(gain);
+        gain.connect(masterGain);
+        oscillator.start(startAt);
+        oscillator.stop(startAt + duration);
+      }
+
+      function playNoise(duration, startFrequency, endFrequency, volume, scheduledAt) {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const startAt = Math.max(audio.currentTime, scheduledAt ?? audio.currentTime);
+        const sampleCount = Math.ceil(audio.sampleRate * duration);
+        const buffer = audio.createBuffer(1, sampleCount, audio.sampleRate);
+        const samples = buffer.getChannelData(0);
+        for (let index = 0; index < sampleCount; index += 1) {
+          samples[index] = Math.random() * 2 - 1;
+        }
+
+        const source = audio.createBufferSource();
+        const filter = audio.createBiquadFilter();
+        const gain = audio.createGain();
+        source.buffer = buffer;
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(startFrequency, startAt);
+        filter.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), startAt + duration);
+        filter.Q.value = 0.7;
+        gain.gain.setValueAtTime(0.0001, startAt);
+        gain.gain.linearRampToValueAtTime(volume, startAt + 0.035);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(masterGain);
+        source.start(startAt);
+        source.stop(startAt + duration);
+      }
+
+      function playRollingSound(duration, scheduledAt, includeThump = false) {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const startAt = Math.max(audio.currentTime, scheduledAt ?? audio.currentTime);
+        if (includeThump) {
+          playNoise(0.11, 260, 70, 0.12, startAt);
+          playTone(105, 45, startAt, 0.16, 0.12, "triangle");
+        }
+        playNoise(duration, 420, 95, 0.08, startAt);
+        playNoise(duration, 1500, 480, 0.035, startAt);
+        playTone(86, 42, startAt, duration, 0.17);
+        for (let offset = 0.12; offset < duration; offset += 0.24) {
+          playNoise(0.035, 1050, 360, 0.018, startAt + offset);
+        }
+      }
+
+      function playPinCrash(pinCount) {
+        const audio = getAudioContext();
+        if (!audio) {
+          return;
+        }
+
+        const startAt = audio.currentTime;
+        playNoise(pinCount > 0 ? 0.72 : 0.38, pinCount > 0 ? 1750 : 520, 95, pinCount > 0 ? 0.24 : 0.12, startAt);
+        playTone(pinCount > 0 ? 112 : 76, 35, startAt, 0.52, 0.24);
+
+        for (let index = 0; index < Math.min(pinCount * 2, 12); index += 1) {
+          const offset = 0.035 + index * 0.045 + Math.random() * 0.025;
+          const clackFrequency = 1800 + Math.random() * 1500;
+          playNoise(0.085 + Math.random() * 0.06, clackFrequency, 350, 0.075, startAt + offset);
+          playTone(280 + Math.random() * 260, 70 + Math.random() * 80, startAt + offset, 0.17, 0.035, "triangle");
+        }
+      }
+
+      function calculateKnockdown(aimOffset, power, endY, startX, startY) {
+        const hit = new Set();
+        const hitRadius = 12 + power * 0.055;
+        const targetX = centerX + aimOffset;
+
+        for (let index = 0; index < pins.length; index += 1) {
+          const pin = pins[index];
+          if (pin.fallen || pin.y < endY) {
+            continue;
+          }
+
+          const pathRatio = (startY - pin.y) / (startY - laneTopY);
+          const ballX = startX + (targetX - startX) * pathRatio;
+          if (Math.abs(ballX - centerX) > getLaneHalfWidth(pin.y) - 12) {
+            continue;
+          }
+          const pinRadius = 14 + pin.row * 2;
+          if (Math.abs(pin.x - ballX) < hitRadius + pinRadius) {
+            hit.add(index);
+          }
+        }
+
+        for (let row = 0; row < 3; row += 1) {
+          for (let index = 0; index < pins.length; index += 1) {
+            if (!hit.has(index) || pins[index].row !== row) {
+              continue;
+            }
+
+            for (let nextIndex = 0; nextIndex < pins.length; nextIndex += 1) {
+              const nextPin = pins[nextIndex];
+              if (!nextPin.fallen && nextPin.row === row + 1 && Math.abs(nextPin.x - pins[index].x) <= 60) {
+                const chainChance = 0.12 + power * 0.002;
+                if (Math.random() < chainChance) {
+                  hit.add(nextIndex);
+                }
+              }
+            }
+          }
+        }
+
+        return hit;
+      }
+
+      function getRollEndpoint(aimOffset, power, startX, startY) {
+        const endY = 190 - (power - 50) * 2.2;
+        let lastOnLaneY = startY;
+        const targetX = centerX + aimOffset;
+
+        for (let y = startY; y >= endY; y -= 4) {
+          const pathRatio = (startY - y) / (startY - laneTopY);
+          const ballX = startX + (targetX - startX) * pathRatio;
+          if (Math.abs(ballX - centerX) > getLaneHalfWidth(y) - 14) {
+            break;
+          }
+          lastOnLaneY = y;
+        }
+
+        const finalY = lastOnLaneY === startY ? endY : Math.max(endY, lastOnLaneY);
+        const pathRatio = (startY - finalY) / (startY - laneTopY);
+        return {
+          x: startX + (targetX - startX) * pathRatio,
+          y: finalY,
+        };
+      }
+
+      function updateChargeProgress() {
+        if (throwChargePhase !== "charging") {
+          chargeAnimationFrame = null;
+          return;
+        }
+
+        const elapsed = performance.now() - chargeStartTime;
+        chargePower = Math.min(100, 50 + elapsed / 900 * 50);
+        updateControls();
+        chargeAnimationFrame = requestAnimationFrame(updateChargeProgress);
+      }
+
+      function startHoldingThrow() {
+        if (!gameStarted || gameFinished || shotTaken || ball || throwChargePhase === "charging") {
+          return;
+        }
+
+        getAudioContext();
+        if (!game.classList.contains("is-scoreboard-collapsed")) {
+          rollsSinceScoreboardCollapsed = 0;
+          setScoreboardCollapsed(true);
+        }
+        throwChargePhase = "charging";
+        chargePower = 50;
+        chargeStartTime = performance.now();
+        powerField.hidden = false;
+        updateControls();
+        chargeAnimationFrame = requestAnimationFrame(updateChargeProgress);
+      }
+
+      function releaseHoldingThrow() {
+        if (throwChargePhase !== "charging") {
+          return;
+        }
+
+        const aimOffset = getAimTargetOffset();
+        const ballStart = getHeldBallPosition();
+        bowlerReleasePosition = ballStart;
+        lockedAimOffset = aimOffset;
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+
+        chargePower = Math.max(50, Math.min(100, Math.round(chargePower)));
+        throwChargePhase = "idle";
+        powerField.hidden = true;
+        throwBall(aimOffset, ballStart);
+      }
+
+      function cancelHoldingThrow() {
+        if (throwChargePhase !== "charging") {
+          return;
+        }
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+        throwChargePhase = "idle";
+        chargePower = 50;
+        powerField.hidden = true;
+        if (rollsSinceScoreboardCollapsed === 0) {
+          setScoreboardCollapsed(false);
+        }
+        updateControls();
+      }
+
+      function shouldResetRackForNextRoll(frame, frameIndex, pinsDown) {
+        const rolls = [...frame.rolls, pinsDown];
+        if (isFrameComplete({ rolls }, frameIndex)) {
+          return true;
+        }
+        if (frameIndex < 9) {
+          return frame.rolls.length === 0 && pinsDown === 10;
+        }
+        return frameIndex === 9 && (
+          (frame.rolls.length === 0 && pinsDown === 10)
+          || (frame.rolls.length === 1 && frame.rolls[0] === 10 && pinsDown === 10)
+          || (frame.rolls.length === 1 && frame.rolls[0] + pinsDown === 10)
+        );
+      }
+
+      async function submitPendingRoll() {
+        if (!pendingRoll) {
+          return;
+        }
+        throwButton.disabled = true;
+        throwButton.textContent = "Đang lưu…";
+        try {
+          const submittedRoll = pendingRoll;
+          const response = await emitRoomCommand("record_roll", {
+            roomCode,
+            rollId: submittedRoll.rollId,
+            frameIndex: submittedRoll.frameIndex,
+            rollIndex: submittedRoll.rollIndex,
+            pinsDown: submittedRoll.pinsDown,
+          });
+          if (pendingRoll?.rollId !== submittedRoll.rollId) {
+            return;
+          }
+          pendingRoll = null;
+          applyRoomState(response.room);
+          if (!gameStarted || !roomCode) {
+            return;
+          }
+          rollsSinceScoreboardCollapsed += 1;
+          if (rollsSinceScoreboardCollapsed >= 2) {
+            setScoreboardCollapsed(false);
+          }
+          const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+          if (!ownPlayer) {
+            return;
+          }
+          currentFrameIndex = getCurrentFrameIndex(ownPlayer);
+          gameFinished = currentFrameIndex < 0;
+          pendingRackReset = submittedRoll.resetRack || currentFrameIndex !== submittedRoll.frameIndex;
+          shotTaken = true;
+          if (gameFinished) {
+            if (ballReturning) {
+              throwButton.textContent = "Bóng đang quay về…";
+            } else {
+              throwButton.disabled = false;
+              throwButton.textContent = "Ván mới";
+            }
+          } else if (!ballReturning) {
+            throwButton.textContent = "Đang chuẩn bị…";
+            scheduleNextRollPreparation();
+          } else {
+            throwButton.textContent = "Bóng đang quay về…";
+          }
+        } catch (error) {
+          gameStatus.textContent = `Chưa đồng bộ được điểm: ${error.message}`;
+          throwButton.disabled = false;
+          throwButton.textContent = "Thử đồng bộ";
+        }
+      }
+
+      function throwBall(aimOffset, ballStart) {
+        if (!gameStarted || gameFinished || shotTaken || ball) {
+          return;
+        }
+
+        if (chargeAnimationFrame !== null) {
+          cancelAnimationFrame(chargeAnimationFrame);
+          chargeAnimationFrame = null;
+        }
+
+        const power = Math.max(50, Math.min(100, Math.round(chargePower)));
+        const endpoint = getRollEndpoint(aimOffset, power, ballStart.x, ballStart.y);
+        const hitPins = calculateKnockdown(aimOffset, power, endpoint.y, ballStart.x, ballStart.y);
+        const start = performance.now();
+        const duration = 2600 + (100 - power) * 6;
+        const returnDuration = 2500;
+        const impactY = pins.length ? pins[pins.length - 1].y : laneTopY;
+        const impactProgress = endpoint.y < impactY
+          ? (ballStart.y - impactY) / (ballStart.y - endpoint.y)
+          : 1;
+        const impactTime = duration * (1 - Math.cbrt(1 - impactProgress));
+        const ownPlayer = gamePlayers.find((player) => player.id === playerId);
+        const frameIndex = getCurrentFrameIndex(ownPlayer);
+        const currentFrame = ownPlayer.frames[frameIndex];
+        const rollIndex = currentFrame.rolls.length;
+        let returnStartedAt = null;
+
+        shotTaken = true;
+        impactPlayed = false;
+        throwButton.disabled = true;
+        throwButton.textContent = "Bóng đang lăn…";
+        ball = { ...ballStart };
+        const rollSoundDelay = 0.3;
+        if (impactTime > rollSoundDelay * 1000) {
+          playRollingSound(
+            (impactTime / 1000) - rollSoundDelay,
+            (audioContext?.currentTime ?? 0) + rollSoundDelay,
+            true,
+          );
+        }
+        drawLane();
+
+        function animate(now) {
+          if (returnStartedAt === null) {
+            const progress = Math.min(1, (now - start) / duration);
+            const eased = 1 - (1 - progress) ** 3;
+            ball.x = ballStart.x + (endpoint.x - ballStart.x) * eased;
+            ball.y = ballStart.y + (endpoint.y - ballStart.y) * eased;
+
+            if (eased >= impactProgress && !impactPlayed) {
+              impactPlayed = true;
+              playPinCrash(hitPins.size);
+            }
+
+            for (const index of hitPins) {
+              const pin = pins[index];
+              const pinImpactProgress = (ballStart.y - pin.y) / (ballStart.y - endpoint.y);
+              if (eased >= pinImpactProgress && !pin.fallen) {
+                const pathRatio = (ballStart.y - pin.y) / (ballStart.y - laneTopY);
+                const ballXAtImpact = ballStart.x + (centerX + aimOffset - ballStart.x) * pathRatio;
+                let direction = Math.sign(pin.x - ballXAtImpact);
+                if (direction === 0) {
+                  direction = Math.random() < 0.5 ? -1 : 1;
+                }
+                pin.fallen = true;
+                pin.flight = {
+                  startedAt: now,
+                  elapsed: 0,
+                  velocityX: direction * (105 + Math.random() * 175),
+                  velocityY: -(250 + Math.random() * 150),
+                  gravity: 560,
+                  spin: (Math.random() < 0.5 ? -1 : 1) * (5 + Math.random() * 9),
+                };
+              }
+              if (pin.flight) {
+                pin.flight.elapsed = Math.max(0, (now - pin.flight.startedAt) / 1000);
+              }
+            }
+
+            if (progress < 1) {
+              drawLane();
+              animationFrame = requestAnimationFrame(animate);
+              return;
+            }
+
+            const knockedDown = hitPins.size;
+            for (const index of hitPins) {
+              pins[index].removed = true;
+            }
+
+            pendingRoll = {
+              rollId: window.crypto?.randomUUID?.()
+                ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+              frameIndex,
+              rollIndex,
+              pinsDown: knockedDown,
+              resetRack: shouldResetRackForNextRoll(currentFrame, frameIndex, knockedDown),
+            };
+            ballReturning = true;
+            returnStartedAt = now;
+            playRollingSound(returnDuration / 1000);
+            throwButton.textContent = "Bóng đang quay về…";
+            drawLane();
+            submitPendingRoll();
+            animationFrame = requestAnimationFrame(animate);
+            return;
+          }
+
+          const returnProgress = Math.min(1, (now - returnStartedAt) / returnDuration);
+          const easedReturn = 1 - (1 - returnProgress) ** 3;
+          const edgeX = (y) => centerX + getLaneHalfWidth(y) - 26;
+          if (easedReturn < 0.18) {
+            const sideProgress = easedReturn / 0.18;
+            ball.x = endpoint.x + (edgeX(endpoint.y) - endpoint.x) * sideProgress;
+            ball.y = endpoint.y;
+          } else if (easedReturn < 0.85) {
+            const laneProgress = (easedReturn - 0.18) / 0.67;
+            ball.y = endpoint.y + (ballStart.y - endpoint.y) * laneProgress;
+            ball.x = edgeX(ball.y);
+          } else {
+            const homeProgress = (easedReturn - 0.85) / 0.15;
+            ball.x = edgeX(ballStart.y) + (ballStart.x - edgeX(ballStart.y)) * homeProgress;
+            ball.y = ballStart.y;
+          }
+
+          drawLane();
+          if (returnProgress < 1) {
+            animationFrame = requestAnimationFrame(animate);
+            return;
+          }
+
+          ball = null;
+          ballReturning = false;
+          bowlerReleasePosition = null;
+          animationFrame = null;
+          if (gameFinished) {
+            throwButton.disabled = false;
+            throwButton.textContent = "Ván mới";
+          } else if (!pendingRoll) {
+            throwButton.textContent = "Đang chuẩn bị…";
+            scheduleNextRollPreparation();
+          }
+          drawLane();
+        }
+
+        animationFrame = requestAnimationFrame(animate);
+      }
+
+      function resetGame() {
+        if (!gameStarted || !gameFinished) {
+          return;
+        }
+        throwButton.disabled = true;
+        gameStatus.textContent = "Đang bắt đầu ván mới…";
+        emitRoomCommand("restart_player", { roomCode })
+          .then((response) => {
+            applyRoomState(response.room);
+            setScoreboardCollapsed(false);
+            prepareNextRoll(true);
+          })
+          .catch((error) => {
+            gameStatus.textContent = error.message;
+            throwButton.disabled = false;
+            throwButton.textContent = "Thử lại";
+          });
+      }
+
+      throwButton.addEventListener("pointerdown", (event) => {
+        throwButton.setPointerCapture(event.pointerId);
+        startHoldingThrow();
+      });
+      throwButton.addEventListener("pointerup", releaseHoldingThrow);
+      throwButton.addEventListener("pointercancel", cancelHoldingThrow);
+      throwButton.addEventListener("click", (event) => {
+        if (pendingRoll) {
+          submitPendingRoll();
+          return;
+        }
+        if (gameFinished) {
+          resetGame();
+          return;
+        }
+        if (event.detail === 0 && !shotTaken && throwChargePhase === "idle") {
+          startHoldingThrow();
+          releaseHoldingThrow();
+        }
+      });
+      backToLobbyButton.addEventListener("click", returnToLobby);
+      saveCharacterButton.addEventListener("click", savePlayerName);
+      createGameButton.addEventListener("click", startGame);
+      joinRoomButton.addEventListener("click", joinGame);
+      roomCodeInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          joinGame();
+        }
+      });
+      shareRoomButton.addEventListener("click", shareRoomLink);
+
+      updateControls();
+      renderRoomBoard();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1600" viewBox="0 0 800 1600" role="img" aria-labelledby="title description">
+  <title id="title">Góc nhìn thứ nhất khi ngắm bắn cung</title>
+  <desc id="description">Khung cảnh sân bắn cung dọc với bầu trời, các dải đồi xanh và cỏ ở tiền cảnh.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1">
+      <stop stop-color="#7eb8ce"/>
+      <stop offset=".72" stop-color="#c5dfd1"/>
+      <stop offset="1" stop-color="#e0e5c7"/>
+    </linearGradient>
+    <linearGradient id="field" x2="0" y2="1">
+      <stop stop-color="#a1c17d"/>
+      <stop offset=".48" stop-color="#638852"/>
+      <stop offset="1" stop-color="#294735"/>
+    </linearGradient>
+    <radialGradient id="vignette">
+      <stop offset=".55" stop-color="#061310" stop-opacity="0"/>
+      <stop offset="1" stop-color="#061310" stop-opacity=".42"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="1600" fill="url(#sky)"/>
+  <path d="M0 525 Q115 449 232 500 T463 478 T800 495 V690 H0Z" fill="#648573"/>
+  <path d="M0 628 Q138 590 282 624 T540 608 T800 619 V1600 H0Z" fill="url(#field)"/>
+
+  <g fill="#f3f0d7" opacity=".22">
+    <path d="M83 183q41-41 83 0 22-29 47 0H63q9-19 20 0z"/>
+    <path d="M548 280q35-35 70 0 20-26 43 0H529q8-17 19 0z"/>
+  </g>
+
+  <path d="M0 804 Q198 756 405 786 T800 763" fill="none" stroke="#d7d99b" stroke-opacity=".28" stroke-width="3"/>
+  <path d="M0 1018 Q190 954 410 991 T800 966" fill="none" stroke="#d8d39a" stroke-opacity=".2" stroke-width="3"/>
+  <path d="M0 1280 Q205 1196 419 1244 T800 1212" fill="none" stroke="#d8d39a" stroke-opacity=".17" stroke-width="3"/>
+  <path d="M0 1460 Q201 1385 404 1425 T800 1392" fill="none" stroke="#d8d39a" stroke-opacity=".13" stroke-width="2"/>
+
+  <g fill="#3c5a43" opacity=".92">
+    <path d="M-25 764l70-205 70 205zm92 8 48-141 48 141zm-13 0 8-69 8 69z"/>
+    <path d="M650 770l74-224 74 224zm-41 3 48-146 48 146zm114 0 40-116 40 116z"/>
+  </g>
+  <g fill="#dfe8c4" opacity=".58">
+    <circle cx="142" cy="905" r="3"/><circle cx="686" cy="1002" r="3"/>
+    <circle cx="203" cy="1176" r="2"/><circle cx="731" cy="1304" r="2"/>
+    <circle cx="102" cy="1375" r="2"/><circle cx="488" cy="900" r="2"/>
+    <circle cx="337" cy="1088" r="2"/><circle cx="579" cy="1437" r="3"/>
+  </g>
+
+  <path d="M0 0h800v1600H0z" fill="url(#vignette)"/>
+  <path d="M0 1600 Q150 1535 310 1575 T590 1560 T800 1574 V1600Z" fill="#18251f" opacity=".62"/>
+  <text x="36" y="64" fill="#f6f1dc" font-family="system-ui, sans-serif" font-size="16" letter-spacing="2.5" opacity=".85">ARCHERY • FIRST-PERSON VIEW</text>
+</svg>

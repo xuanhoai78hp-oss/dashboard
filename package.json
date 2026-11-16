@@ -1,8 +1,8 @@
 {
-  "name": "bowling-game",
+  "name": "game-hub",
   "version": "1.0.0",
   "private": true,
-  "description": "Bowling game web app",
+  "description": "Bowling and archery game hub",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

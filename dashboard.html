@@ -448,7 +448,7 @@
               <span class="meta-tag">6m ago</span>
             </div>
             <p class="presence" id="cung-presence" aria-live="polite"><strong>Đang kết nối...</strong><small>Đang lấy danh sách phòng</small></p>
-            <a class="game-action" id="cung-action" href="https://cung-8tdj.onrender.com" target="_blank" rel="noopener noreferrer">Mở game</a>
+            <a class="game-action" id="cung-action" href="/cung">Mở game</a>
           </article>
 
           <article class="game-card" data-game="bowling">
@@ -593,7 +593,7 @@
       }
 
       function resetCungAction() {
-        cungAction.href = "https://cung-8tdj.onrender.com";
+        cungAction.href = "/cung";
         cungAction.textContent = "Mở game";
       }
 
@@ -627,7 +627,7 @@
 
           socket.timeout(5000).emit("list_rooms", (timeoutError, response) => {
             if (timeoutError) {
-              setPresenceState(cungPresence, "API phòng chưa sẵn sàng", "Cần triển khai backend Cung");
+              setPresenceState(cungPresence, "API phòng chưa sẵn sàng", "Máy chủ chưa phản hồi");
               resetCungAction();
               console.error("Máy chủ Cung không phản hồi khi lấy danh sách phòng");
               return;
@@ -656,17 +656,17 @@
               return !busiest || room.playerCount > busiest.playerCount ? room : busiest;
             }, null);
             if (busiestRoom) {
-              cungAction.href = `https://cung-8tdj.onrender.com/?room=${encodeURIComponent(busiestRoom.code)}`;
+              cungAction.href = `/cung?room=${encodeURIComponent(busiestRoom.code)}`;
               cungAction.textContent = `Vào phòng (${busiestRoom.playerCount} người)`;
             } else {
-              cungAction.href = "https://cung-8tdj.onrender.com";
+              cungAction.href = "/cung";
               cungAction.textContent = "Mở game";
             }
           });
         }
 
         function observeCungRooms() {
-          const socket = io("https://cung-8tdj.onrender.com", { transports: ["websocket"] });
+          const socket = io();
           const refresh = () => refreshCungPresence(socket);
           socket.on("connect", refresh);
           socket.on("disconnect", () => {
