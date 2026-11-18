@@ -981,8 +981,19 @@ function recenterGyro() {
   statusLabel.textContent = "ĐÃ ĐẶT LẠI TÂM";
 }
 
-startButton.addEventListener("click", startGame);
-restartButton.addEventListener("click", startGame);
+// Bắt sự kiện chạm/click nút vào trận tối ưu cho điện thoại
+const handleStartGame = (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  startGame();
+};
+
+startButton.addEventListener("pointerdown", handleStartGame);
+startButton.addEventListener("click", handleStartGame);
+
+restartButton.addEventListener("pointerdown", handleStartGame);
+restartButton.addEventListener("click", handleStartGame);
+
 fireButton.addEventListener("pointerdown", (event) => {
   event.preventDefault();
   fireButton.setPointerCapture(event.pointerId);
@@ -1028,5 +1039,4 @@ window.addEventListener("blur", () => {
 createScenery();
 createMachineGun();
 resize();
-startGame();
 animate();
