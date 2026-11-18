@@ -27,6 +27,26 @@ app.get('/cung', (req, res) => {
   res.sendFile(path.join(__dirname, 'cung.html'));
 });
 
+app.get('/thuthanh.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'thuthanh.html'));
+});
+
+app.get('/main.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'main.js'));
+});
+
+app.get('/style.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'style.css'));
+});
+
+app.get('/three.module.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'node_modules/three/build/three.module.js'));
+});
+
+app.get('/three.core.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'node_modules/three/build/three.core.js'));
+});
+
 app.get('/nencung.svg', (req, res) => {
   res.sendFile(path.join(__dirname, 'nencung.svg'));
 });

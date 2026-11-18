@@ -1,7 +1,12 @@
 # Game Hub
 
-The home page is available at `/`. Open `/game` to play Bowling and `/cung` to
-play Archery. Room invite links use the same path with `?room=<room-code>`.
+The home page is available at `/`. Open `/cung` to play Archery, `/game` to play
+Bowling, and `/thuthanh.html` to play Thủ Thành. Room invite links use the same
+path with `?room=<room-code>`.
+
+Thủ Thành enemies descend by parachute and crawl toward the gate. Defeating 10
+enemies increases firing speed by 5%; reaching 100% wins and unlocks the Bowling
+reward link.
 
 The dashboard reads `/api/rooms` for active Bowling rooms and the Socket.IO
 `list_rooms` event for active Archery rooms. Each game's room commands use
