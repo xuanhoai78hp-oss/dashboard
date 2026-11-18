@@ -1028,4 +1028,5 @@ window.addEventListener("blur", () => {
 createScenery();
 createMachineGun();
 resize();
+startGame();
 animate();
