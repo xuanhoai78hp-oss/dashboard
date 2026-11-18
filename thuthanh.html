@@ -2,50 +2,31 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#11211d" />
-    <title>Phòng Không - Thủ Thành Pro</title>
-    <style>
-      * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-      body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #11211d; font-family: sans-serif; }
-      #game { position: relative; width: 100%; height: 100%; }
-      #viewport { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-      
-      /* HUD Giao diện */
-      .hud { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; padding: 12px 16px; background: rgba(0,0,0,0.4); color: #fff; z-index: 10; pointer-events: none; }
-      .brand strong { font-size: 16px; display: block; color: #a3ffb2; }
-      .brand span { font-size: 12px; opacity: 0.8; }
-      .stats { display: flex; gap: 16px; align-items: center; }
-      .stats div { text-align: center; font-size: 11px; }
-      .stats strong { display: block; font-size: 16px; color: #ffd700; }
-      .health-track { width: 80px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; margin-top: 4px; }
-      #gate-fill { display: block; height: 100%; background: #4caf50; width: 100%; transition: width 0.3s; }
-
-      /* Nút điều khiển di động */
-      .controls { position: absolute; bottom: 24px; left: 0; right: 0; display: flex; justify-content: space-around; align-items: center; padding: 0 20px; z-index: 10; pointer-events: none; }
-      .control-button, .fire-button { pointer-events: auto; cursor: pointer; border: none; outline: none; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-      .control-button { background: rgba(255,255,255,0.85); color: #222; padding: 12px 18px; font-size: 13px; }
-      .fire-button { background: #ff5722; color: white; width: 90px; height: 90px; border-radius: 50%; font-size: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 4px solid #fff; }
-      .fire-button:active { transform: scale(0.92); background: #f4511e; }
-
-      /* Màn hình chờ & Kết thúc (Overlay) */
-      .overlay { position: absolute; inset: 0; background: rgba(10, 20, 16, 0.92); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-      .overlay.hidden { display: none !important; }
-      .intro-card { background: #1b332b; border: 2px solid #325c4e; border-radius: 16px; padding: 28px; max-width: 400px; width: 100%; text-align: center; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-      .intro-card h1 { font-size: 26px; margin: 10px 0; color: #a3ffb2; }
-      .intro-card p { font-size: 13px; line-height: 1.5; opacity: 0.85; margin-bottom: 20px; }
-      .start-button { background: #4caf50; color: white; border: none; width: 100%; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; pointer-events: auto; }
-      .start-button:active { background: #43a047; transform: scale(0.98); }
-    </style>
+    <title>Thủ Thành</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/three.module.js"
+        }
+      }
+    </script>
   </head>
   <body>
     <main id="game">
       <div id="viewport" aria-label="Khung cảnh trò chơi"></div>
-      
+      <aside id="aim-zoom" class="aim-zoom" aria-label="Phóng to hướng ngắm">
+        <span class="aim-zoom-label"><i></i> LIVE · HƯỚNG NGẮM</span>
+      </aside>
       <header class="hud">
         <div class="brand">
-          <strong>PHÒNG KHÔNG</strong>
-          <span>BẢO VỆ CỔNG THÀNH</span>
+          <span class="brand-mark">✈</span>
+          <div>
+            <strong>THỦ THÀNH</strong>
+            <span>PHÒNG TUYẾN RỪNG CỔ</span>
+          </div>
         </div>
         <div class="stats">
           <div><span>ĐIỂM</span><strong id="score">0000</strong></div>
@@ -57,34 +38,65 @@
         </div>
       </header>
 
+      <div class="crosshair" aria-hidden="true"><i></i><b></b></div>
+      <div class="aim-hint">KÉO ĐỂ NGẮM</div>
+
+      <aside class="left-panel">
+        <span class="live-dot"></span>
+        <span id="status">CHỜ LỆNH</span>
+        <span class="divider"></span>
+        <span id="enemy-count">0 MỤC TIÊU</span>
+        <span class="divider"></span>
+        <span id="level-progress">CẤP 1 · 50%</span>
+      </aside>
+
       <div class="controls">
         <button id="gyro-button" class="control-button" type="button">BẬT GYRO</button>
-        <button id="fire-button" class="fire-button" type="button">
-          <span>🔥 BẮN</span>
+        <button id="recenter-button" class="control-button secondary" type="button" disabled>ĐẶT LẠI TÂM</button>
+        <button id="fire-button" class="fire-button" type="button" aria-label="Giữ để bắn hai súng phun lửa">
+          <span class="fire-icon">✹</span>
+          <span>PHUN LỬA</span>
+          <kbd>SPACE</kbd>
         </button>
-        <button id="recenter-button" class="control-button" type="button" disabled>ĐẶT TÂM</button>
       </div>
 
-      <!-- Màn hình Vào Trận -->
+      <footer class="footer-hint">
+        <span>GIỮ CỔNG THÀNH AN TOÀN</span>
+        <span>DI CHUỘT / CẢM ỨNG ĐỂ NGẮM</span>
+      </footer>
+
       <section id="overlay" class="overlay">
         <div class="intro-card">
-          <div class="intro-kicker">🛡️ NHIỆM VỤ PHÒNG THỦ</div>
-          <h1>Không phận<br /><em>bị xâm phạm!</em></h1>
-          <p>Kẻ địch đang thả côn trùng xuống cận chiến cổng thành. Chạm vuốt để ngắm bắn, giữ nút lửa để tiêu diệt chúng!</p>
-          <button id="start-button" class="start-button" type="button">VÀO TRẬN →</button>
+          <div class="intro-kicker"><span></span> NHIỆM VỤ PHÒNG THỦ</div>
+          <h1>Không phận<br /><em>bị xâm phạm.</em></h1>
+          <p>
+            Máy bay địch thả dù mang côn trùng, bò sát hoặc xe pháo tự động. Bắt
+            đầu với 50% tốc độ bắn; hạ chúng trên không hoặc khi chúng bò về cổng.
+            Cứ hạ 10 mục tiêu, tốc độ tăng 5%; đạt 100% để qua cửa và nhận kỳ nghỉ.
+          </p>
+          <div class="intro-features">
+            <span>✦ 2 LOẠI MÁY BAY</span>
+            <span>✦ NHIỀU ĐƯỜNG BAY</span>
+            <span>✦ 2 SÚNG KHẠC LỬA</span>
+          </div>
+          <button id="start-button" class="start-button" type="button">VÀO TRẬN <span>→</span></button>
+          <small>Âm thanh được tạo bằng Web Audio API · Có thể bật gyro sau khi vào trận</small>
         </div>
       </section>
 
-      <!-- Màn hình Kết Thúc -->
       <section id="game-over" class="overlay hidden">
-        <div class="intro-card">
-          <h1>Trận đấu<br /><em>kết thúc!</em></h1>
-          <p id="result-copy">Cổng thành đã thất thủ trước bầy côn trùng.</p>
-          <div style="margin: 15px 0; font-size: 14px;">ĐIỂM SỐ: <strong id="final-score" style="color: #ffd700; font-size: 20px;">0000</strong></div>
-          <button id="restart-button" class="start-button" type="button">CHƠI LẠI →</button>
+        <div class="intro-card result-card">
+          <div class="intro-kicker"><span></span> KẾT THÚC TRẬN ĐÁNH</div>
+          <h1 id="result-title">Cổng thành<br /><em>đã thất thủ.</em></h1>
+          <p id="result-copy">Kẻ địch đã áp sát và gây hư hại cổng thành.</p>
+          <div class="result-score"><span>ĐIỂM SỐ</span><strong id="final-score">0000</strong></div>
+          <a id="bowling-link" class="start-button reward-link hidden" href="/game">
+            NHẬN KỲ NGHỈ · CHƠI BOWLING <span>→</span>
+          </a>
+          <button id="restart-button" class="start-button" type="button">CHƠI LẠI <span>→</span></button>
         </div>
       </section>
     </main>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/main.js"></script>
   </body>
 </html>
